@@ -1,0 +1,863 @@
+from datetime import date, datetime
+from typing import Literal
+from uuid import UUID
+
+from pydantic import BaseModel, EmailStr, Field, model_validator
+
+from src.domain.auth.roles import Role
+
+
+class RegisterRequest(BaseModel):
+    organization_name: str = Field(min_length=2, max_length=200)
+    full_name: str | None = Field(default=None, max_length=200)
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=200)
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+    # Opt-in "Manter conectado": only then is the refresh token also returned
+    # in the response body (for the browser to keep on the device), because
+    # the cross-site cookie alone is often blocked on mobile.
+    remember_me: bool = False
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str | None = None
+
+
+class UserResponse(BaseModel):
+    id: UUID
+    email: EmailStr
+    full_name: str | None
+
+    model_config = {"from_attributes": True}
+
+
+class OrganizationResponse(BaseModel):
+    id: UUID
+    name: str
+    slug: str
+    plan: str
+
+    model_config = {"from_attributes": True}
+
+
+class MembershipResponse(BaseModel):
+    organization: OrganizationResponse
+    role: Role
+
+
+class AuthResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    refresh_token: str | None = None
+    user: UserResponse
+
+
+class MeResponse(BaseModel):
+    user: UserResponse
+    organizations: list[MembershipResponse]
+
+
+class CreateOrganizationRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=200)
+
+
+class OrgMemberResponse(BaseModel):
+    user_id: UUID
+    email: EmailStr
+    full_name: str | None
+    role: Role
+    created_at: datetime
+
+
+class AddMemberRequest(BaseModel):
+    email: EmailStr
+    role: Role
+
+
+class CreateProjectRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=200)
+    description: str | None = Field(default=None, max_length=2000)
+    customer_id: UUID | None = None
+
+
+class UpdateProjectRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=200)
+    description: str | None = Field(default=None, max_length=2000)
+    status: str | None = Field(default=None, pattern="^(draft|in_progress|completed|archived)$")
+
+
+class ProjectResponse(BaseModel):
+    id: UUID
+    customer_id: UUID | None
+    name: str
+    description: str | None
+    status: str
+    active_version_id: UUID | None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class ProjectVersionResponse(BaseModel):
+    id: UUID
+    version_number: int
+    label: str | None
+    source_type: str
+    status: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class CreateVersionRequest(BaseModel):
+    file_id: UUID
+    label: str | None = Field(default=None, max_length=200)
+
+
+class RequestUploadRequest(BaseModel):
+    filename: str = Field(min_length=1, max_length=255)
+    mime_type: str = Field(min_length=1, max_length=100)
+    kind: str
+
+
+class RequestUploadResponse(BaseModel):
+    file_id: UUID
+    upload_url: str
+    storage_key: str
+
+
+class FileAssetResponse(BaseModel):
+    id: UUID
+    kind: str
+    mime_type: str
+    size_bytes: int | None
+    status: str
+
+    model_config = {"from_attributes": True}
+
+
+class DownloadUrlResponse(BaseModel):
+    download_url: str
+
+
+class CreateCustomerRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=200)
+    email: EmailStr | None = None
+    phone: str | None = Field(default=None, max_length=30)
+    document: str | None = Field(default=None, max_length=30)
+    address: dict | None = None
+    notes: str | None = Field(default=None, max_length=2000)
+
+
+class UpdateCustomerRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=200)
+    email: EmailStr | None = None
+    phone: str | None = Field(default=None, max_length=30)
+    document: str | None = Field(default=None, max_length=30)
+    address: dict | None = None
+    notes: str | None = Field(default=None, max_length=2000)
+
+
+class CustomerResponse(BaseModel):
+    id: UUID
+    name: str
+    email: str | None
+    phone: str | None
+    document: str | None
+    address: dict | None
+    notes: str | None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class CreateCostProfileRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=200)
+    energy_cost_per_kwh: float = Field(ge=0)
+    labor_cost_per_hour: float = Field(ge=0)
+    packaging_cost_flat: float = Field(ge=0)
+    waste_percentage: float = Field(ge=0)
+    fees_percentage: float = Field(ge=0)
+    profit_margin_percentage: float = Field(ge=0)
+    tax_percentage: float | None = Field(default=None, ge=0)
+    is_default: bool = False
+
+
+class UpdateCostProfileRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=200)
+    energy_cost_per_kwh: float | None = Field(default=None, ge=0)
+    labor_cost_per_hour: float | None = Field(default=None, ge=0)
+    packaging_cost_flat: float | None = Field(default=None, ge=0)
+    waste_percentage: float | None = Field(default=None, ge=0)
+    fees_percentage: float | None = Field(default=None, ge=0)
+    profit_margin_percentage: float | None = Field(default=None, ge=0)
+    tax_percentage: float | None = Field(default=None, ge=0)
+    is_default: bool | None = None
+
+
+class CostProfileResponse(BaseModel):
+    id: UUID
+    name: str
+    energy_cost_per_kwh: float
+    labor_cost_per_hour: float
+    packaging_cost_flat: float
+    waste_percentage: float
+    fees_percentage: float
+    profit_margin_percentage: float
+    tax_percentage: float | None
+    is_default: bool
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class QuoteExtraItem(BaseModel):
+    name: str = Field(max_length=200)
+    cost: float = Field(ge=0)
+
+
+class CreateQuoteRequest(BaseModel):
+    cost_profile_id: UUID
+    project_id: UUID | None = None
+    project_version_id: UUID | None = None
+    customer_id: UUID | None = None
+    material_cost: float = Field(ge=0)
+    print_time_hours: float = Field(ge=0)
+    machine_cost_per_hour: float | None = Field(default=None, ge=0)
+    machine_id: UUID | None = None
+    energy_kwh: float = Field(ge=0)
+    labor_hours: float = Field(ge=0)
+    piece_name: str | None = Field(default=None, max_length=200)
+    printer_name: str | None = Field(default=None, max_length=200)
+    weight_g: float | None = Field(default=None, ge=0)
+    quantity: int = Field(default=1, ge=1)
+    profit_margin_percentage: float | None = Field(default=None, ge=0)
+    material_id: UUID | None = None
+    cost_per_kg: float | None = Field(default=None, ge=0)
+    extra_items: list[QuoteExtraItem] | None = None
+    depreciation_mode: str | None = Field(default=None, pattern="^(hora|peca)$")
+    depreciation_value: float | None = Field(default=None, ge=0)
+
+    @model_validator(mode="after")
+    def _project_fields_go_together(self) -> "CreateQuoteRequest":
+        if (self.project_id is None) != (self.project_version_id is None):
+            raise ValueError("Informe project_id e project_version_id juntos, ou nenhum dos dois.")
+        return self
+
+
+
+class UpdateQuoteRequest(BaseModel):
+    piece_name: str | None = Field(default=None, max_length=200)
+    printer_name: str | None = Field(default=None, max_length=200)
+    machine_id: UUID | None = None
+    material_id: UUID | None = None
+    weight_g: float | None = Field(default=None, ge=0)
+    cost_per_kg: float | None = Field(default=None, ge=0)
+    extra_items: list[QuoteExtraItem] | None = None
+    print_time_hours: float | None = Field(default=None, ge=0)
+    depreciation_mode: str | None = Field(default=None, pattern="^(hora|peca)$")
+    depreciation_value: float | None = Field(default=None, ge=0)
+    labor_hours: float | None = Field(default=None, ge=0)
+    profit_margin_percentage: float | None = Field(default=None, ge=0)
+    quantity: int | None = Field(default=None, ge=1)
+    final_price: float | None = Field(default=None, ge=0)
+
+
+class QuoteResponse(BaseModel):
+    id: UUID
+    cost_profile_id: UUID
+    project_version_id: UUID | None
+    customer_id: UUID | None
+    piece_name: str | None
+    printer_name: str | None
+    machine_id: UUID | None
+    material_id: UUID | None
+    weight_g: float | None
+    cost_per_kg: float | None
+    extra_items: list[QuoteExtraItem] | None
+    print_time_hours: float | None
+    depreciation_mode: str | None
+    depreciation_value: float | None
+    labor_hours: float | None
+    profit_margin_percentage: float | None
+    quantity: int
+    cost_breakdown_snapshot: dict
+    production_cost: float
+    suggested_price: float
+    final_price: float | None
+    status: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+_ORDER_STATUS_PATTERN = (
+    "^(quote|order|paid|production|printing|finishing|packaging|delivered|completed|cancelled)$"
+)
+
+
+class CreateOrderRequest(BaseModel):
+    customer_id: UUID
+    quote_id: UUID | None = None
+    notes: str | None = Field(default=None, max_length=2000)
+    due_date: date | None = None
+    status: str | None = Field(default=None, pattern=_ORDER_STATUS_PATTERN)
+
+
+class OrderItemBrief(BaseModel):
+    product_id: UUID | None
+    quantity: int
+    unit_price: float | None
+
+
+class OrderResponse(BaseModel):
+    id: UUID
+    customer_id: UUID
+    quote_id: UUID | None
+    status: str
+    production_status: str = "todo"
+    due_date: datetime | None = None
+    total_amount: float
+    notes: str | None
+    created_at: datetime
+    items: list[OrderItemBrief] = Field(default_factory=list)
+
+    model_config = {"from_attributes": True}
+
+
+class UpdateOrderRequest(BaseModel):
+    customer_id: UUID | None = None
+    notes: str | None = Field(default=None, max_length=2000)
+    due_date: date | None = None
+    clear_due_date: bool = False
+    production_status: str | None = Field(default=None, pattern="^(todo|doing|done)$")
+    status: str | None = Field(default=None, pattern=_ORDER_STATUS_PATTERN)
+
+
+class TransitionOrderStatusRequest(BaseModel):
+    status: str = Field(pattern=_ORDER_STATUS_PATTERN)
+
+
+class CreateOrderItemRequest(BaseModel):
+    project_id: UUID | None = None
+    project_version_id: UUID | None = None
+    product_id: UUID | None = None
+    machine_id: UUID | None = None
+    material_id: UUID | None = None
+    quantity: int = Field(default=1, ge=1)
+    unit_cost: float | None = Field(default=None, ge=0)
+    unit_price: float | None = Field(default=None, ge=0)
+
+    @model_validator(mode="after")
+    def _project_fields_go_together(self) -> "CreateOrderItemRequest":
+        if (self.project_id is None) != (self.project_version_id is None):
+            raise ValueError("Informe project_id e project_version_id juntos, ou nenhum dos dois.")
+        return self
+
+
+class UpdateOrderItemRequest(BaseModel):
+    product_id: UUID | None = None
+    quantity: int | None = Field(default=None, ge=1)
+    unit_cost: float | None = Field(default=None, ge=0)
+    unit_price: float | None = Field(default=None, ge=0)
+
+
+class OrderItemResponse(BaseModel):
+    id: UUID
+    order_id: UUID
+    project_version_id: UUID | None
+    product_id: UUID | None
+    machine_id: UUID | None
+    material_id: UUID | None
+    quantity: int
+    unit_cost: float | None
+    unit_price: float | None
+    status: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class CustomerHistoryResponse(BaseModel):
+    quotes: list[QuoteResponse]
+    projects: list[ProjectResponse]
+    orders: list[OrderResponse]
+
+
+class CreateMaterialRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=200)
+    type: str = Field(min_length=2, max_length=30)
+    color: str | None = Field(default=None, max_length=50)
+    density_g_cm3: float | None = Field(default=None, gt=0)
+    cost_per_kg: float | None = Field(default=None, ge=0)
+    supplier: str | None = Field(default=None, max_length=200)
+
+
+class UpdateMaterialRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=200)
+    type: str | None = Field(default=None, min_length=2, max_length=30)
+    color: str | None = Field(default=None, max_length=50)
+    density_g_cm3: float | None = Field(default=None, gt=0)
+    cost_per_kg: float | None = Field(default=None, ge=0)
+    supplier: str | None = Field(default=None, max_length=200)
+
+
+class MaterialResponse(BaseModel):
+    id: UUID
+    name: str
+    type: str
+    color: str | None
+    density_g_cm3: float | None
+    cost_per_kg: float | None
+    supplier: str | None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class ProductMaterialInput(BaseModel):
+    material_id: UUID
+    quantity_g: float = Field(gt=0)
+
+
+class PhotoFocus(BaseModel):
+    url: str = Field(max_length=2000)
+    x: float = Field(ge=0, le=100)
+    y: float = Field(ge=0, le=100)
+
+
+class CreateProductRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=200)
+    description: str | None = Field(default=None, max_length=2000)
+    print_time_hours: float | None = Field(default=None, ge=0)
+    machine_id: UUID | None = None
+    manual_price: float | None = Field(default=None, ge=0)
+    size: str | None = Field(default=None, max_length=100)
+    photo_urls: list[str] = Field(default_factory=list)
+    stock_quantity: int | None = Field(default=None, ge=0)
+    materials: list[ProductMaterialInput] = Field(default_factory=list)
+    # False = o produto nasce oculto na loja pública e só aparece quando o
+    # lojista o publica manualmente (Minha Loja → Produtos na loja → Mostrar).
+    publish_in_store: bool = True
+
+
+class UpdateProductRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=200)
+    description: str | None = Field(default=None, max_length=2000)
+    print_time_hours: float | None = Field(default=None, ge=0)
+    machine_id: UUID | None = None
+    manual_price: float | None = Field(default=None, ge=0)
+    size: str | None = Field(default=None, max_length=100)
+    photo_urls: list[str] | None = None
+    photo_focus: list[PhotoFocus] | None = None
+    stock_quantity: int | None = Field(default=None, ge=0)
+    materials: list[ProductMaterialInput] | None = None
+
+
+class ProductMaterialResponse(BaseModel):
+    material_id: UUID
+    quantity_g: float
+
+
+class ProductResponse(BaseModel):
+    id: UUID
+    name: str
+    description: str | None
+    print_time_hours: float | None
+    machine_id: UUID | None
+    manual_price: float | None
+    size: str | None
+    photo_urls: list[str] = Field(default_factory=list)
+    photo_focus: list[PhotoFocus] = Field(default_factory=list)
+    stock_quantity: int | None
+    is_active: bool
+    created_at: datetime
+    materials: list[ProductMaterialResponse] = Field(default_factory=list)
+
+    model_config = {"from_attributes": True}
+
+
+class ProductCostItem(BaseModel):
+    product_id: UUID
+    material_cost: float
+    waste_cost: float
+    energy_cost: float
+    machine_cost: float
+    labor_cost: float
+    packaging_cost: float
+    fees: float
+    production_cost: float
+    tax_amount: float
+    suggested_price: float
+    source: str = "recipe"
+
+
+class ProductCostResponse(BaseModel):
+    material_cost: float
+    waste_cost: float
+    energy_cost: float
+    machine_cost: float
+    labor_cost: float
+    packaging_cost: float
+    fees: float
+    production_cost: float
+    tax_amount: float
+    suggested_price: float
+    source: str = "recipe"
+
+
+class CreateInventoryItemRequest(BaseModel):
+    material_id: UUID | None = None
+    name: str = Field(min_length=2, max_length=200)
+    category: str = Field(pattern="^(filament|resin|component|packaging|spare_part)$")
+    unit: str = Field(pattern="^(g|kg|un)$")
+    minimum_stock: float = Field(default=0, ge=0)
+    unit_cost: float | None = Field(default=None, ge=0)
+    supplier: str | None = Field(default=None, max_length=200)
+    initial_quantity: float = Field(default=0, ge=0)
+
+
+class UpdateInventoryItemRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=200)
+    minimum_stock: float | None = Field(default=None, ge=0)
+    unit_cost: float | None = Field(default=None, ge=0)
+    supplier: str | None = Field(default=None, max_length=200)
+
+
+class InventoryItemResponse(BaseModel):
+    id: UUID
+    material_id: UUID | None
+    name: str
+    category: str
+    quantity_on_hand: float
+    unit: str
+    minimum_stock: float
+    unit_cost: float | None
+    supplier: str | None
+    created_at: datetime
+    is_low_stock: bool = False
+
+    model_config = {"from_attributes": True}
+
+
+class CreateInventoryMovementRequest(BaseModel):
+    type: str = Field(pattern="^(entrada|saida|ajuste|consumo|perda)$")
+    quantity: float
+    unit_cost: float | None = Field(default=None, ge=0)
+    notes: str | None = Field(default=None, max_length=2000)
+    reference_order_id: UUID | None = None
+
+
+class InventoryMovementResponse(BaseModel):
+    id: UUID
+    inventory_item_id: UUID
+    type: str
+    quantity: float
+    unit_cost: float | None
+    notes: str | None
+    reference_order_id: UUID | None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class CreateFinancialTransactionRequest(BaseModel):
+    type: str = Field(pattern="^(receita|custo|despesa)$")
+    category: str = Field(min_length=2, max_length=50)
+    cost_center: str | None = Field(default=None, max_length=100)
+    amount: float = Field(gt=0)
+    reference_order_id: UUID | None = None
+    due_date: date | None = None
+    mark_as_paid: bool = False
+
+
+class UpdateFinancialTransactionRequest(BaseModel):
+    category: str | None = Field(default=None, min_length=2, max_length=50)
+    cost_center: str | None = Field(default=None, max_length=100)
+    amount: float | None = Field(default=None, gt=0)
+    due_date: date | None = None
+
+
+class FinancialTransactionResponse(BaseModel):
+    id: UUID
+    type: str
+    category: str
+    cost_center: str | None
+    amount: float
+    reference_order_id: UUID | None
+    due_date: date | None
+    paid_at: datetime | None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class FinancialSummaryResponse(BaseModel):
+    total_revenue: float
+    total_cost: float
+    total_expense: float
+    profit: float
+    pending_receivables: float
+    pending_payables: float
+
+
+class DashboardResponse(BaseModel):
+    orders_by_status: dict[str, int]
+    low_stock_items_count: int
+    customers_count: int
+    projects_count: int
+    financial: FinancialSummaryResponse
+
+
+class CreateMachineRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=200)
+    brand: str | None = Field(default=None, max_length=100)
+    model: str | None = Field(default=None, max_length=100)
+    technology: str = Field(pattern="^(FDM|SLA|MSLA)$")
+    build_volume_x_mm: float | None = Field(default=None, gt=0)
+    build_volume_y_mm: float | None = Field(default=None, gt=0)
+    build_volume_z_mm: float | None = Field(default=None, gt=0)
+    power_watts: float | None = Field(default=None, ge=0)
+    cost_per_hour: float | None = Field(default=None, ge=0)
+    speed_profile: dict | None = None
+    compatible_materials: list[str] | None = None
+
+
+class UpdateMachineRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=200)
+    brand: str | None = Field(default=None, max_length=100)
+    model: str | None = Field(default=None, max_length=100)
+    cost_per_hour: float | None = Field(default=None, ge=0)
+    power_watts: float | None = Field(default=None, ge=0)
+    status: str | None = Field(default=None, pattern="^(active|maintenance|inactive)$")
+
+
+class MachineResponse(BaseModel):
+    id: UUID
+    name: str
+    brand: str | None
+    model: str | None
+    technology: str
+    build_volume_x_mm: float | None
+    build_volume_y_mm: float | None
+    build_volume_z_mm: float | None
+    power_watts: float | None
+    cost_per_hour: float | None
+    speed_profile: dict | None
+    compatible_materials: list[str] | None
+    status: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class PlanResponse(BaseModel):
+    id: UUID
+    code: str
+    name: str
+    is_active: bool
+    trial_period_days: int | None
+
+    model_config = {"from_attributes": True}
+
+
+class SubscriptionResponse(BaseModel):
+    id: UUID
+    plan: PlanResponse
+    status: str
+    current_period_start: datetime
+    current_period_end: datetime
+    trial_start: datetime | None
+    trial_end: datetime | None
+    cancel_at_period_end: bool
+    canceled_at: datetime | None
+
+    model_config = {"from_attributes": True}
+
+
+class CancelSubscriptionRequest(BaseModel):
+    at_period_end: bool = True
+
+
+class ChangePlanRequest(BaseModel):
+    plan_code: str = Field(min_length=2, max_length=50)
+
+
+class UsageItemResponse(BaseModel):
+    key: str
+    limit_type: str
+    current_usage: float | None
+    limit: float | None
+    enabled: bool | None
+
+
+class ImageUploadResponse(BaseModel):
+    url: str
+
+
+class StoreSlide(BaseModel):
+    url: str = Field(max_length=2000)
+    title: str = Field(default="", max_length=120)
+    subtitle: str = Field(default="", max_length=240)
+    # Enquadramento da foto (0-100). Sem valores = foto inteira, sem corte (padrão).
+    x: float | None = Field(default=None, ge=0, le=100)
+    y: float | None = Field(default=None, ge=0, le=100)
+
+
+class StoreHighlight(BaseModel):
+    title: str = Field(default="", max_length=80)
+    text: str = Field(default="", max_length=240)
+
+
+class StoreCategory(BaseModel):
+    """Categoria da vitrine: criada e renomeada pelo lojista, guarda os ids
+
+    dos produtos que pertencem a ela (um produto pode estar em várias).
+    """
+
+    id: str = Field(min_length=1, max_length=40)
+    name: str = Field(default="", max_length=60)
+    product_ids: list[str] = Field(default_factory=list)
+    # Foto principal da categoria na vitrine (URL escolhida pelo lojista).
+    # Vazio = automática (primeira foto dos produtos da categoria).
+    cover_url: str = Field(default="", max_length=2000)
+    # Enquadramento da foto principal (ponto de foco, 0-100; 50/50 = centro).
+    cover_x: float = Field(default=50, ge=0, le=100)
+    cover_y: float = Field(default=50, ge=0, le=100)
+
+
+class StoreSettings(BaseModel):
+    """Everything the shop owner manages for the public storefront; stored
+
+    under `Organization.settings["store"]`.
+    """
+
+    display_name: str = Field(default="", max_length=120)
+    logo_url: str = Field(default="", max_length=2000)
+    tagline: str = Field(default="", max_length=200)
+    about: str = Field(default="", max_length=2000)
+    whatsapp: str = Field(default="5521970386065", max_length=20)
+    instagram: str = Field(default="", max_length=120)
+    hours: str = Field(default="", max_length=300)
+    address: str = Field(default="", max_length=300)
+    accent: str = Field(default="terracota", max_length=20)
+    theme: str = Field(default="moria", pattern="^(light|dark|moria)$")
+    slides: list[StoreSlide] = Field(default_factory=list, max_length=10)
+    highlights: list[StoreHighlight] = Field(default_factory=list, max_length=3)
+    hidden_product_ids: list[str] = Field(default_factory=list)
+    # A ordem desta lista é a ordem dos destaques na vitrine.
+    featured_product_ids: list[str] = Field(default_factory=list)
+    # Ordem personalizada dos produtos na vitrine (ids). Produtos que não estão
+    # na lista (novos) aparecem depois, na ordem de cadastro.
+    product_order: list[str] = Field(default_factory=list)
+    # Produtos exibidos como "Preço a consultar" na loja pública.
+    price_on_request_product_ids: list[str] = Field(default_factory=list)
+    categories: list[StoreCategory] = Field(default_factory=list, max_length=30)
+
+
+class StoreAdminResponse(BaseModel):
+    slug: str
+    name: str
+    settings: StoreSettings
+
+
+class PublicProduct(BaseModel):
+    id: UUID
+    name: str
+    description: str | None
+    size: str | None
+    photo_urls: list[str]
+    photo_focus: list[PhotoFocus]
+    price: float
+    stock_quantity: int | None
+    available: bool
+    featured: bool
+    category_ids: list[str] = Field(default_factory=list)
+    # Quando True, `price` vem 0 — o valor real não é exposto publicamente.
+    price_on_request: bool = False
+
+
+class StorePing(BaseModel):
+    """Sinal de vida de um visitante da vitrine (anônimo)."""
+
+    visitor_id: str = Field(min_length=8, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
+    # True na primeira abertura da loja numa sessão: conta como uma visita.
+    new_visit: bool = False
+
+
+class StoreEvent(BaseModel):
+    """Ação de um visitante na vitrine (anônima)."""
+
+    kind: Literal["product_view", "whatsapp_click"]
+    product_id: str | None = Field(default=None, max_length=64, pattern=r"^[A-Za-z0-9-]+$")
+
+
+class StoreVisitTotals(BaseModel):
+    views: int
+    # Pessoas diferentes por dia, somadas (quem volta em outro dia conta de novo).
+    unique: int
+    whatsapp: int = 0
+
+
+class StoreVisitDay(BaseModel):
+    date: str
+    views: int
+    unique: int
+    whatsapp: int = 0
+
+
+class StoreTopProduct(BaseModel):
+    product_id: str
+    name: str
+    views: int  # últimos 30 dias
+    views7: int  # últimos 7 dias
+
+
+class StoreOnlineResponse(BaseModel):
+    online: int
+
+
+class StoreAnalyticsResponse(BaseModel):
+    online: int
+    today: StoreVisitTotals
+    last7: StoreVisitTotals
+    last30: StoreVisitTotals
+    days: list[StoreVisitDay]
+    top_products: list[StoreTopProduct] = Field(default_factory=list)
+
+
+class PublicCategory(BaseModel):
+    id: str
+    name: str
+    cover_url: str = ""
+    cover_x: float = 50
+    cover_y: float = 50
+
+
+class PublicStoreSettings(BaseModel):
+    display_name: str
+    logo_url: str
+    tagline: str
+    about: str
+    whatsapp: str
+    instagram: str
+    hours: str
+    address: str
+    accent: str
+    theme: str
+    slides: list[StoreSlide]
+    highlights: list[StoreHighlight]
+    categories: list[PublicCategory] = Field(default_factory=list)
+    # Ids dos destaques visíveis, já na ordem escolhida pelo lojista.
+    featured_product_ids: list[str] = Field(default_factory=list)
+
+
+class PublicStoreResponse(BaseModel):
+    slug: str
+    name: str
+    settings: PublicStoreSettings
+    products: list[PublicProduct]
