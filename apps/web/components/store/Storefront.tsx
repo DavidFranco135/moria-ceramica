@@ -410,6 +410,10 @@ export function Storefront({ slug }: { slug: string }) {
     settings.whatsapp,
     `Olá, ${storeName}! Gostaria de saber mais sobre os produtos.`
   );
+  const waCustom = whatsappLink(
+    settings.whatsapp,
+    `Olá, ${storeName}! Quero encomendar uma peça personalizada.`
+  );
   const openProduct = openProductId ? productsById.get(openProductId) ?? null : null;
   // Todos os destaques marcados, na ordem escolhida pelo lojista. (Antes a lista
   // era cortada em 8 e seguia a ordem de cadastro, por isso "sumiam" destaques.)
@@ -485,10 +489,10 @@ export function Storefront({ slug }: { slug: string }) {
   );
 
   const steps = [
-    { title: "Escolha seus produtos", text: "Navegue pelo catálogo e toque no produto para ver fotos, tamanho e detalhes." },
-    { title: "Monte seu pedido", text: "Adicione ao pedido, ajuste a quantidade e escreva informações como cor ou personalização." },
+    { title: "Escolha seus produtos", text: "Navegue pelo catálogo e toque na peça para ver fotos, medidas e detalhes." },
+    { title: "Monte seu pedido", text: "Adicione ao pedido, ajuste a quantidade e escreva a cor do esmalte ou o nome e a frase para personalizar." },
     { title: "Envie pelo WhatsApp", text: "Um toque e o pedido completo vai pronto para o nosso WhatsApp, sem cadastro." },
-    { title: "Combine e receba", text: "Confirmamos valor final, prazo, pagamento e entrega com você." },
+    { title: "Combine e receba", text: "Confirmamos valor, prazo de produção, pagamento e entrega. Peças sob encomenda passam por modelagem, secagem e duas queimas." },
   ];
 
   return (
@@ -594,7 +598,7 @@ export function Storefront({ slug }: { slug: string }) {
                   <section className="space-y-6">
                     <SectionTitle
                       eyebrow="Seleção"
-                      title="Destaques da loja"
+                      title="Peças em destaque"
                       action={
                         <button
                           onClick={() => openCategory(null)}
@@ -667,6 +671,39 @@ export function Storefront({ slug }: { slug: string }) {
                 </div>
               )}
 
+              <Reveal>
+                <section className="grid items-center gap-8 rounded-[32px] border border-[var(--line)] bg-[var(--accent-soft)] p-8 sm:p-12 lg:grid-cols-[1.2fr_1fr]">
+                  <div className="space-y-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
+                      Personalizados
+                    </p>
+                    <h2 className="font-[family-name:var(--font-display)] text-3xl font-semibold tracking-tight sm:text-4xl">
+                      Um nome, uma data ou uma frase gravados na sua peça.
+                    </h2>
+                    <p className="max-w-xl text-base leading-relaxed text-[var(--muted)]">
+                      Canecas com nome, pratos para casamento, lembranças de nascimento e presentes para empresas.
+                      Conte a ideia e nós moldamos a peça para a ocasião.
+                    </p>
+                    <a
+                      href={waCustom}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="fx-btn inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-7 py-3.5 text-sm font-semibold text-[var(--accent-ink)] shadow-lg transition hover:-translate-y-0.5"
+                    >
+                      <IconWhatsapp className="h-5 w-5" />
+                      Pedir peça personalizada
+                    </a>
+                  </div>
+                  <ul className="grid gap-3 text-sm">
+                    {["Presentes e lembranças", "Casamentos e noivados", "Nascimento e batizado", "Empresas, cafés e restaurantes"].map((label) => (
+                      <li key={label} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-5 py-4 font-medium">
+                        {label}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              </Reveal>
+
               {settings.about && (
                 <Reveal>
                   <section className="grid gap-8 rounded-[32px] border border-[var(--line)] bg-[var(--surface)] p-8 sm:p-12 lg:grid-cols-[1fr_1.4fr]">
@@ -675,7 +712,7 @@ export function Storefront({ slug }: { slug: string }) {
                         Sobre nós
                       </p>
                       <h2 className="font-[family-name:var(--font-display)] text-3xl font-semibold tracking-tight sm:text-4xl">
-                        Feito com cuidado, do projeto à entrega.
+                        Feita à mão, peça por peça.
                       </h2>
                     </div>
                     <p className="whitespace-pre-line text-base leading-relaxed text-[var(--muted)]">
@@ -693,7 +730,7 @@ export function Storefront({ slug }: { slug: string }) {
                       <h2 className="font-[family-name:var(--font-display)] text-3xl font-semibold tracking-tight sm:text-4xl">
                         Não achou o que procurava?
                       </h2>
-                      <p className="opacity-85">Fale com a gente: criamos peças sob medida e personalizadas.</p>
+                      <p className="opacity-85">Fale com a gente: fazemos peças sob encomenda, do jeito que você imaginou.</p>
                     </div>
                     <a
                       href={waGeneral}

@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentOrganizationId, setCurrentOrganizationId] = useState<string | null>(null);
   const pathname = usePathname();
   // The public storefront needs no session - skip the refresh round-trip there.
-  const isPublicPage = pathname === "/loja" || pathname?.startsWith("/loja/") === true;
+  const isPublicPage = pathname === "/" || pathname === "/loja" || pathname?.startsWith("/loja/") === true;
 
   const loadMe = useCallback(async (token: string) => {
     const me = await apiFetch<MeResponse>("/api/v1/users/me", { accessToken: token });

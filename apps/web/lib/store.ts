@@ -81,6 +81,10 @@ export type PublicStore = {
 
 export type CartLine = { id: string; qty: number; note: string };
 
+// Loja mostrada na página inicial do site. É o endereço gerado no cadastro a
+// partir do nome "Moriá Cerâmica"; se for outro, defina NEXT_PUBLIC_STORE_SLUG.
+export const STORE_SLUG = process.env.NEXT_PUBLIC_STORE_SLUG || "moria-ceramica";
+
 // WhatsApp da loja: definido em Minha Loja. Vazio até a loja preencher.
 export const DEFAULT_WHATSAPP = "";
 

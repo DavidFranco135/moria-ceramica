@@ -14,6 +14,7 @@ import {
   formatWhatsappDisplay,
   normalizeWhatsapp,
   refreshPublicStoreCache,
+  STORE_SLUG,
 } from "@/lib/store";
 import { AppShell } from "@/components/AppShell";
 import { clearDraft, readDraft, writeDraft } from "@/lib/drafts";
@@ -143,10 +144,11 @@ export default function LojaAdminPage() {
     return () => clearTimeout(timeoutId);
   }, [status, router, load]);
 
-  const publicUrl = useMemo(
-    () => (slug && typeof window !== "undefined" ? `${window.location.origin}/loja?s=${slug}` : ""),
-    [slug]
-  );
+  const publicUrl = useMemo(() => {
+    if (!slug || typeof window === "undefined") return "";
+    // A loja principal abre direto no endereço do site.
+    return slug === STORE_SLUG ? `${window.location.origin}/` : `${window.location.origin}/loja?s=${slug}`;
+  }, [slug]);
 
   function update(patch: Partial<StoreSettings>) {
     setSettings((s) => ({ ...s, ...patch }));
