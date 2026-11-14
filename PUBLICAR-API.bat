@@ -7,6 +7,17 @@ echo  Moria Ceramica - publicar a API no Firebase
 echo ============================================================
 echo.
 
+if not exist apps\api\main.py (
+  if exist codigo.zip (
+    echo Extraindo o codigo do projeto...
+    tar -xf codigo.zip
+  )
+)
+if not exist apps\api\main.py (
+  echo [ERRO] Nao encontrei a pasta apps\api ao lado deste arquivo.
+  goto :fim
+)
+
 where node >nul 2>&1
 if errorlevel 1 (
   echo [ERRO] O Node.js nao esta instalado. Instale em https://nodejs.org e rode este arquivo de novo.
