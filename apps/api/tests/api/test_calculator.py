@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from tests.api.conftest import auth_headers, register_user
@@ -224,3 +225,64 @@ def test_viewer_cannot_create_cost_profile(client: TestClient):
         headers=viewer_headers,
     )
     assert response.status_code == 403
+
+
+def test_firing_splits_kiln_time_and_energy_across_the_batch(client: TestClient):
+    """Cerâmica: 8 h por queima x 2 queimas / 40 peças = 0,4 h de forno por
+    peça; forno de 6 kW usando 50% da potência = 1,2 kWh por peça."""
+    owner = register_user(client, organization_name="Moriá", email="owner@moria.io")
+    headers = auth_headers(owner["access_token"])
+    org_id = _org_id(client, headers)
+    base = f"/api/v1/organizations/{org_id}"
+    profile = client.post(
+        f"{base}/cost-profiles",
+        json={
+            "name": "Ateliê",
+            "energy_cost_per_kwh": 1.0,
+            "labor_cost_per_hour": 0,
+            "packaging_cost_flat": 0,
+            "waste_percentage": 0,
+            "fees_percentage": 0,
+            "profit_margin_percentage": 0,
+            "is_default": True,
+        },
+        headers=headers,
+    ).json()
+    kiln = client.post(
+        f"{base}/machines",
+        json={"name": "Forno", "technology": "forno_eletrico", "power_watts": 6000, "cost_per_hour": 5},
+        headers=headers,
+    ).json()
+    firing = {"hours_per_firing": 8, "firings": 2, "batch_size": 40, "power_usage_percentage": 50}
+    created = client.post(
+        f"{base}/quotes",
+        json={
+            "cost_profile_id": profile["id"],
+            "material_cost": 0,
+            "print_time_hours": 0.4,
+            "machine_cost_per_hour": 5,
+            "machine_id": kiln["id"],
+            "energy_kwh": 1.2,
+            "labor_hours": 0,
+            "piece_name": "Xícara",
+            "depreciation_mode": "hora",
+            "depreciation_value": 5,
+            "firing": firing,
+        },
+        headers=headers,
+    )
+    assert created.status_code == 201, created.text
+    quote = created.json()
+    assert quote["firing"] == firing
+    # 1,2 kWh x R$ 1 + 0,4 h x R$ 5
+    assert quote["production_cost"] == pytest.approx(3.2)
+
+    # Dobrar a fornada corta pela metade o custo de forno da peça.
+    updated = client.patch(
+        f"{base}/quotes/{quote['id']}",
+        json={"firing": {**firing, "batch_size": 80}},
+        headers=headers,
+    )
+    assert updated.status_code == 200, updated.text
+    assert updated.json()["firing"]["batch_size"] == 80
+    assert updated.json()["production_cost"] == pytest.approx(1.6)

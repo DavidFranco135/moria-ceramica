@@ -213,6 +213,7 @@ class Quote:
     print_time_hours: float | None = None
     depreciation_mode: str | None = None
     depreciation_value: float | None = None
+    firing: dict | None = None
     labor_hours: float | None = None
     profit_margin_percentage: float | None = None
     quantity: int = 1

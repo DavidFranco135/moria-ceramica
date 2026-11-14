@@ -152,6 +152,7 @@ def update_quote(
             print_time_hours=payload.print_time_hours,
             depreciation_mode=payload.depreciation_mode,
             depreciation_value=payload.depreciation_value,
+            firing=payload.firing.model_dump() if payload.firing is not None else None,
             labor_hours=payload.labor_hours,
             profit_margin_percentage=payload.profit_margin_percentage,
             quantity=payload.quantity,
@@ -217,6 +218,7 @@ def create_quote(
             ),
             depreciation_mode=payload.depreciation_mode,
             depreciation_value=payload.depreciation_value,
+            firing=payload.firing.model_dump() if payload.firing is not None else None,
         )
     except DomainError as exc:
         raise as_http_exception(exc) from exc

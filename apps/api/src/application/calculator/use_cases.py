@@ -143,6 +143,7 @@ def create_quote(
     extra_items: list[dict] | None = None,
     depreciation_mode: str | None = None,
     depreciation_value: float | None = None,
+    firing: dict | None = None,
 ) -> Quote:
     profile = get_cost_profile(db, organization_id=organization_id, cost_profile_id=cost_profile_id)
 
@@ -211,6 +212,7 @@ def create_quote(
         print_time_hours=print_time_hours,
         depreciation_mode=depreciation_mode,
         depreciation_value=depreciation_value,
+        firing=dict(firing) if firing is not None else None,
         labor_hours=labor_hours,
         profit_margin_percentage=resolved_margin,
         quantity=quantity,
@@ -220,6 +222,15 @@ def create_quote(
     )
     db.commit()
     return quote
+
+
+def firing_hours_per_piece(firing: dict) -> float:
+    """Horas de forno que cabem a uma peça: o total das queimas dividido pelas
+    peças que entram na fornada."""
+    hours = float(firing.get("hours_per_firing") or 0)
+    firings = int(firing.get("firings") or 1)
+    batch_size = max(int(firing.get("batch_size") or 1), 1)
+    return hours * firings / batch_size
 
 
 def list_quotes(db: Session, *, organization_id: UUID) -> list[Quote]:
@@ -249,6 +260,7 @@ def update_quote(
     depreciation_mode: str | None,
     depreciation_value: float | None,
     labor_hours: float | None,
+    firing: dict | None = None,
     profit_margin_percentage: float | None,
     quantity: int | None,
     final_price: float | None,
@@ -273,6 +285,13 @@ def update_quote(
     resolved_print_time_hours = (
         print_time_hours if print_time_hours is not None else (quote.print_time_hours or 0.0)
     )
+    # Queima (cerâmica): quando informada, o tempo de forno da peça é a parte
+    # dela na fornada, e a energia leva em conta o uso médio da potência.
+    resolved_firing = firing if firing is not None else getattr(quote, "firing", None)
+    power_usage_fraction = 1.0
+    if resolved_firing:
+        resolved_print_time_hours = firing_hours_per_piece(resolved_firing)
+        power_usage_fraction = float(resolved_firing.get("power_usage_percentage", 100)) / 100
     resolved_depreciation_mode = depreciation_mode or quote.depreciation_mode or "hora"
     resolved_depreciation_value = (
         depreciation_value if depreciation_value is not None else (quote.depreciation_value or 0.0)
@@ -308,7 +327,7 @@ def update_quote(
         )
 
     energy_kwh = (
-        (power_watts / 1000) * resolved_print_time_hours
+        (power_watts / 1000) * resolved_print_time_hours * power_usage_fraction
         if power_watts is not None
         else 0.0
     )
@@ -347,6 +366,7 @@ def update_quote(
     quote.print_time_hours = resolved_print_time_hours
     quote.depreciation_mode = resolved_depreciation_mode
     quote.depreciation_value = resolved_depreciation_value
+    quote.firing = dict(resolved_firing) if resolved_firing else None
     quote.labor_hours = resolved_labor_hours
     quote.profit_margin_percentage = resolved_margin
     quote.quantity = resolved_quantity

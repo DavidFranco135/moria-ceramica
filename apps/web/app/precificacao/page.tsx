@@ -14,13 +14,13 @@ import { normalizeSearch } from "@/lib/search";
 function CostBreakdownList({ breakdown }: { breakdown: PricingBreakdown }) {
   return (
     <dl className="grid grid-cols-2 gap-y-2 text-sm">
-      <dt className="text-neutral-500">Material + itens adicionais</dt>
+      <dt className="text-neutral-500">Argila + outros materiais</dt>
       <dd className="text-right">{formatCurrency(breakdown.materialCost)}</dd>
-      <dt className="text-neutral-500">Desperdício</dt>
+      <dt className="text-neutral-500">Perdas (trincas e quebras)</dt>
       <dd className="text-right">{formatCurrency(breakdown.wasteCost)}</dd>
-      <dt className="text-neutral-500">Energia</dt>
+      <dt className="text-neutral-500">Luz do forno</dt>
       <dd className="text-right">{formatCurrency(breakdown.energyCost)}</dd>
-      <dt className="text-neutral-500">Depreciação da máquina</dt>
+      <dt className="text-neutral-500">Desgaste do forno</dt>
       <dd className="text-right">{formatCurrency(breakdown.machineCost)}</dd>
       <dt className="text-neutral-500">Mão de obra</dt>
       <dd className="text-right">{formatCurrency(breakdown.laborCost)}</dd>
@@ -41,7 +41,7 @@ function CostBreakdownList({ breakdown }: { breakdown: PricingBreakdown }) {
 type TabKey = "impressora" | "perfil" | "peca" | "resultado" | "salvas";
 
 const TABS: { key: TabKey; label: string }[] = [
-  { key: "impressora", label: "Impressora" },
+  { key: "impressora", label: "Forno" },
   { key: "perfil", label: "Perfil de custo" },
   { key: "peca", label: "Peça" },
   { key: "resultado", label: "Resultado" },
@@ -65,9 +65,9 @@ export default function PrecificacaoPage() {
 
   // --- Impressora tab: create a printer preset (reuses /machines) ---
   const [showPrinterForm, setShowPrinterForm] = useState(false);
-  const [newPrinterName, setNewPrinterName] = useState("Bambu Lab A1");
-  const [newPrinterBrand, setNewPrinterBrand] = useState("Bambu Lab");
-  const [newPrinterModel, setNewPrinterModel] = useState("A1");
+  const [newPrinterName, setNewPrinterName] = useState("Forno elétrico");
+  const [newPrinterBrand, setNewPrinterBrand] = useState("");
+  const [newPrinterModel, setNewPrinterModel] = useState("");
   const [newPrinterCostPerHour, setNewPrinterCostPerHour] = useState("");
   const [newPrinterPowerWatts, setNewPrinterPowerWatts] = useState("");
   const [isSavingPrinter, setIsSavingPrinter] = useState(false);
@@ -89,7 +89,12 @@ export default function PrecificacaoPage() {
   // --- Peça tab: the pricing form ---
   const [printerId, setPrinterId] = useState("");
   const [pieceName, setPieceName] = useState("");
-  const [printTimeHours, setPrintTimeHours] = useState("");
+  // Queima: o forno leva várias peças de uma vez, então o tempo de forno e a
+  // energia de cada peça são a parte dela na fornada.
+  const [printTimeHours, setPrintTimeHours] = useState(""); // horas por queima
+  const [firings, setFirings] = useState("2"); // biscoito + esmalte
+  const [batchSize, setBatchSize] = useState("1");
+  const [powerUsage, setPowerUsage] = useState("60");
   const [weightG, setWeightG] = useState("");
   const [materialId, setMaterialId] = useState("");
   const [costPerKg, setCostPerKg] = useState("");
@@ -98,7 +103,7 @@ export default function PrecificacaoPage() {
   const [depreciationValue, setDepreciationValue] = useState("");
   const [marginPercent, setMarginPercent] = useState("40");
   const [laborHours, setLaborHours] = useState("0");
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(true);
   const [extraItems, setExtraItems] = useState<{ name: string; cost: string }[]>([]);
 
   const [selectedQuoteIds, setSelectedQuoteIds] = useState<string[]>([]);
@@ -189,7 +194,7 @@ export default function PrecificacaoPage() {
           name: newPrinterName,
           brand: newPrinterBrand || null,
           model: newPrinterModel || null,
-          technology: "FDM",
+          technology: "forno_eletrico",
           cost_per_hour: newPrinterCostPerHour ? Number(newPrinterCostPerHour) : null,
           power_watts: newPrinterPowerWatts ? Number(newPrinterPowerWatts) : null,
         }),
@@ -199,7 +204,7 @@ export default function PrecificacaoPage() {
       setNewPrinterPowerWatts("");
       await load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Falha ao salvar impressora.");
+      setError(err instanceof ApiError ? err.message : "Falha ao salvar o forno.");
     } finally {
       setIsSavingPrinter(false);
     }
@@ -281,7 +286,12 @@ export default function PrecificacaoPage() {
   }
 
   // --- Live pricing preview (mirrors the backend engine exactly) ---
-  const printTimeHoursNum = Number(printTimeHours || 0);
+  const hoursPerFiringNum = Number(printTimeHours || 0);
+  const firingsNum = Math.max(1, Math.round(Number(firings || 1)));
+  const batchSizeNum = Math.max(1, Math.round(Number(batchSize || 1)));
+  const powerUsageNum = Math.min(100, Math.max(0, Number(powerUsage || 0)));
+  // Horas de forno que cabem a uma peça.
+  const printTimeHoursNum = (hoursPerFiringNum * firingsNum) / batchSizeNum;
   const weightGNum = Number(weightG || 0);
   const costPerKgNum = Number(costPerKg || 0);
   const quantityNum = Math.max(1, Number(quantity || 1));
@@ -298,7 +308,7 @@ export default function PrecificacaoPage() {
 
   const energyKwh =
     selectedPrinter?.power_watts != null
-      ? (selectedPrinter.power_watts / 1000) * printTimeHoursNum
+      ? (selectedPrinter.power_watts / 1000) * printTimeHoursNum * (powerUsageNum / 100)
       : 0;
 
   const extraItemsCost = extraItems.reduce((sum, item) => sum + (Number(item.cost) || 0), 0);
@@ -332,6 +342,9 @@ export default function PrecificacaoPage() {
     setPrinterId("");
     setPieceName("");
     setPrintTimeHours("");
+    setFirings("2");
+    setBatchSize("1");
+    setPowerUsage("60");
     setWeightG("");
     setMaterialId("");
     setCostPerKg("");
@@ -369,6 +382,12 @@ export default function PrecificacaoPage() {
       extra_items: extraItems.map((item) => ({ name: item.name, cost: Number(item.cost) || 0 })),
       depreciation_mode: depreciationMode,
       depreciation_value: depreciationValueNum || null,
+      firing: {
+        hours_per_firing: hoursPerFiringNum,
+        firings: firingsNum,
+        batch_size: batchSizeNum,
+        power_usage_percentage: powerUsageNum,
+      },
     };
     try {
       if (editingQuoteId) {
@@ -443,7 +462,17 @@ export default function PrecificacaoPage() {
     setEditingQuoteId(q.id);
     setPrinterId(q.machine_id ?? "");
     setPieceName(q.piece_name ?? "");
-    setPrintTimeHours(q.print_time_hours != null ? String(q.print_time_hours) : "");
+    if (q.firing) {
+      setPrintTimeHours(String(q.firing.hours_per_firing));
+      setFirings(String(q.firing.firings));
+      setBatchSize(String(q.firing.batch_size));
+      setPowerUsage(String(q.firing.power_usage_percentage));
+    } else {
+      setPrintTimeHours(q.print_time_hours != null ? String(q.print_time_hours) : "");
+      setFirings("1");
+      setBatchSize("1");
+      setPowerUsage("100");
+    }
     setWeightG(q.weight_g != null ? String(q.weight_g) : "");
     setMaterialId(q.material_id ?? "");
     setCostPerKg(q.cost_per_kg != null ? String(q.cost_per_kg) : "");
@@ -583,13 +612,13 @@ export default function PrecificacaoPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-neutral-500">
-                      {machines.length} impressora(s) salva(s)
+                      {machines.length} forno(s) salvo(s)
                     </p>
                     <button
                       onClick={() => setShowPrinterForm((v) => !v)}
                       className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500"
                     >
-                      {showPrinterForm ? "Cancelar" : "+ Nova impressora"}
+                      {showPrinterForm ? "Cancelar" : "+ Novo forno"}
                     </button>
                   </div>
 
@@ -601,10 +630,10 @@ export default function PrecificacaoPage() {
                       <input required placeholder="Nome" value={newPrinterName} onChange={(e) => setNewPrinterName(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
                       <input placeholder="Marca" value={newPrinterBrand} onChange={(e) => setNewPrinterBrand(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
                       <input placeholder="Modelo" value={newPrinterModel} onChange={(e) => setNewPrinterModel(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
-                      <input type="number" step="0.01" placeholder="Depreciação por hora (R$)" value={newPrinterCostPerHour} onChange={(e) => setNewPrinterCostPerHour(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
-                      <input type="number" step="1" placeholder="Potência (W) — opcional" value={newPrinterPowerWatts} onChange={(e) => setNewPrinterPowerWatts(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2 sm:col-span-2" />
+                      <input type="number" step="0.01" placeholder="Desgaste por hora de uso (R$)" value={newPrinterCostPerHour} onChange={(e) => setNewPrinterCostPerHour(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
+                      <input type="number" step="1" placeholder="Potência (W) — ex.: 6000 para 6 kW" value={newPrinterPowerWatts} onChange={(e) => setNewPrinterPowerWatts(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2 sm:col-span-2" />
                       <button type="submit" disabled={isSavingPrinter} className="rounded bg-blue-600 px-4 py-2 font-medium disabled:opacity-50 sm:col-span-2">
-                        {isSavingPrinter ? "Salvando…" : "Salvar impressora"}
+                        {isSavingPrinter ? "Salvando…" : "Salvar forno"}
                       </button>
                     </form>
                   )}
@@ -612,7 +641,7 @@ export default function PrecificacaoPage() {
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {machines.length === 0 ? (
                       <p className="text-sm text-neutral-500">
-                        Nenhuma impressora salva ainda — cadastre a sua (ex: Bambu Lab A1) acima.
+                        Nenhum forno salvo ainda — cadastre o seu acima, com a potência em watts.
                       </p>
                     ) : (
                       machines.map((m) => (
@@ -620,7 +649,7 @@ export default function PrecificacaoPage() {
                           <p className="font-medium">{m.name}</p>
                           <p className="text-xs text-neutral-500">{m.brand ?? "—"} {m.model ?? ""}</p>
                           <p className="mt-1 text-sm text-neutral-300">
-                            {formatCurrency(m.cost_per_hour)}/h de depreciação
+                            {formatCurrency(m.cost_per_hour)}/h de desgaste
                             {m.power_watts ? ` · ${m.power_watts}W` : ""}
                           </p>
                         </div>
@@ -653,7 +682,7 @@ export default function PrecificacaoPage() {
                       <input type="number" step="0.01" placeholder="Energia (R$/kWh)" value={energyCost} onChange={(e) => setEnergyCost(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
                       <input type="number" step="0.01" placeholder="Mão de obra (R$/h)" value={laborCost} onChange={(e) => setLaborCost(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
                       <input type="number" step="0.01" placeholder="Embalagem fixa (R$)" value={packagingCost} onChange={(e) => setPackagingCost(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
-                      <input type="number" step="0.01" placeholder="Desperdício (%)" value={wastePct} onChange={(e) => setWastePct(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
+                      <input type="number" step="0.01" placeholder="Perdas: trincas e quebras (%)" value={wastePct} onChange={(e) => setWastePct(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
                       <input type="number" step="0.01" placeholder="Taxas (%)" value={feesPct} onChange={(e) => setFeesPct(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
                       <input type="number" step="0.01" placeholder="Margem de lucro (%)" value={profitPct} onChange={(e) => setProfitPct(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
                       <input type="number" step="0.01" placeholder="Imposto (%)" value={taxPct} onChange={(e) => setTaxPct(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
@@ -678,7 +707,7 @@ export default function PrecificacaoPage() {
                             {p.is_default && <span className="rounded bg-blue-950 px-1.5 py-0.5 text-xs text-blue-300">padrão</span>}
                           </div>
                           <p className="mt-1 text-neutral-500">
-                            Energia R$ {p.energy_cost_per_kwh}/kWh · Margem {p.profit_margin_percentage}% · Desperdício {p.waste_percentage}%
+                            Energia R$ {p.energy_cost_per_kwh}/kWh · Margem {p.profit_margin_percentage}% · Perdas {p.waste_percentage}%
                           </p>
                           <div className="mt-2 flex gap-3 border-t border-neutral-800 pt-2">
                             <button onClick={() => startEditProfile(p)} className="text-xs text-blue-400 hover:underline">
@@ -712,7 +741,7 @@ export default function PrecificacaoPage() {
                       <button type="button" onClick={() => setActiveTab("perfil")} className="underline">
                         perfil de custo
                       </button>{" "}
-                      primeiro (energia, taxas de marketplace, etc.) — sem ele não dá pra calcular
+                      primeiro (tarifa de luz, mão de obra, embalagem, taxas) — sem ele não dá pra calcular
                       o preço aqui.
                     </p>
                   )}
@@ -720,13 +749,13 @@ export default function PrecificacaoPage() {
                   <div className="rounded-xl border border-neutral-800 bg-neutral-950/50 p-4 space-y-4">
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <div className="sm:col-span-2">
-                        <label className="mb-1 block text-xs text-neutral-500">Impressora</label>
+                        <label className="mb-1 block text-xs text-neutral-500">Forno</label>
                         <select
                           value={printerId}
                           onChange={(e) => handlePickPrinter(e.target.value)}
                           className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
                         >
-                          <option value="">Nenhuma salva (preencher depreciação manualmente)</option>
+                          <option value="">Nenhum salvo (sem cálculo automático de luz)</option>
                           {machines.map((m) => (
                             <option key={m.id} value={m.id}>{m.name} {m.model ?? ""}</option>
                           ))}
@@ -734,30 +763,57 @@ export default function PrecificacaoPage() {
                       </div>
 
                       <div className="sm:col-span-2">
-                        <label className="mb-1 block text-xs text-neutral-500">Nome do projeto (peça)</label>
+                        <label className="mb-1 block text-xs text-neutral-500">Nome da peça</label>
                         <input
-                          placeholder='Ex: "Suporte de celular articulado"'
+                          placeholder='Ex: "Xícara de café 180 ml"'
                           value={pieceName}
                           onChange={(e) => setPieceName(e.target.value)}
                           className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
                         />
                       </div>
 
-                      <div>
-                        <label className="mb-1 block text-xs text-neutral-500">Tempo de impressão (h)</label>
-                        <input type="number" step="0.01" placeholder="Ex: 3.5" value={printTimeHours} onChange={(e) => setPrintTimeHours(e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
+                      <div className="space-y-3 rounded-lg border border-neutral-800 p-3 sm:col-span-2">
+                        <p className="text-xs font-medium text-neutral-300">Queima no forno</p>
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                          <div>
+                            <label className="mb-1 block text-xs text-neutral-500">Horas por queima</label>
+                            <input type="number" step="0.5" min={0} placeholder="Ex: 8" value={printTimeHours} onChange={(e) => setPrintTimeHours(e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-xs text-neutral-500">Nº de queimas</label>
+                            <input type="number" step="1" min={1} value={firings} onChange={(e) => setFirings(e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-xs text-neutral-500">Peças por fornada</label>
+                            <input type="number" step="1" min={1} value={batchSize} onChange={(e) => setBatchSize(e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-xs text-neutral-500">Uso da potência (%)</label>
+                            <input type="number" step="5" min={0} max={100} value={powerUsage} onChange={(e) => setPowerUsage(e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
+                          </div>
+                        </div>
+                        <p className="text-xs text-neutral-500">
+                          Normalmente são 2 queimas (biscoito e esmalte). O forno liga e desliga para seguir a curva, por isso
+                          não usa a potência cheia o tempo todo. Parte desta peça na fornada:{" "}
+                          <span className="text-neutral-300">
+                            {printTimeHoursNum.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} h de forno
+                            {selectedPrinter?.power_watts != null
+                              ? ` · ${energyKwh.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} kWh de luz`
+                              : ""}
+                          </span>
+                        </p>
                       </div>
                       <div>
-                        <label className="mb-1 block text-xs text-neutral-500">Quantidade de peças</label>
+                        <label className="mb-1 block text-xs text-neutral-500">Quantidade de peças do pedido</label>
                         <input type="number" min={1} value={quantity} onChange={(e) => setQuantity(e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
                       </div>
 
                       <div>
-                        <label className="mb-1 block text-xs text-neutral-500">Peso da peça (g)</label>
-                        <input type="number" step="0.1" placeholder="Ex: 25" value={weightG} onChange={(e) => setWeightG(e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
+                        <label className="mb-1 block text-xs text-neutral-500">Peso de argila por peça (g)</label>
+                        <input type="number" step="0.1" placeholder="Ex: 350" value={weightG} onChange={(e) => setWeightG(e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
                       </div>
                       <div>
-                        <label className="mb-1 block text-xs text-neutral-500">Material</label>
+                        <label className="mb-1 block text-xs text-neutral-500">Argila</label>
                         <select value={materialId} onChange={(e) => handlePickMaterial(e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm">
                           <option value="">Informar custo/kg manualmente</option>
                           {materials.map((m) => (
@@ -767,18 +823,18 @@ export default function PrecificacaoPage() {
                       </div>
 
                       <div className="sm:col-span-2">
-                        <label className="mb-1 block text-xs text-neutral-500">Custo do material por kg (R$)</label>
+                        <label className="mb-1 block text-xs text-neutral-500">Custo da argila por kg (R$)</label>
                         <input type="number" step="0.01" value={costPerKg} onChange={(e) => setCostPerKg(e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
                       </div>
 
                       <div className="sm:col-span-2 space-y-2">
                         <label className="block text-xs text-neutral-500">
-                          Itens adicionais (embalagem, argola, etiqueta, etc.)
+                          Outros materiais por peça (esmalte, engobe, pigmento, decalque, etc.)
                         </label>
                         {extraItems.map((item, index) => (
                           <div key={index} className="flex flex-col gap-2 sm:flex-row">
                             <input
-                              placeholder="Nome (ex: Embalagem)"
+                              placeholder="Nome (ex: Esmalte branco)"
                               value={item.name}
                               onChange={(e) => updateExtraItem(index, { name: e.target.value })}
                               className="w-full min-w-0 rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm sm:flex-1"
@@ -813,7 +869,7 @@ export default function PrecificacaoPage() {
                       </div>
 
                       <div className="sm:col-span-2">
-                        <label className="mb-1 block text-xs text-neutral-500">Depreciação da máquina</label>
+                        <label className="mb-1 block text-xs text-neutral-500">Desgaste do forno (resistências, manutenção)</label>
                         <div className="flex gap-2">
                           <button type="button" onClick={() => setDepreciationMode("hora")} className={`flex-1 rounded border px-3 py-2 text-sm ${depreciationMode === "hora" ? "border-blue-500 bg-blue-950 text-blue-300" : "border-neutral-700 text-neutral-400"}`}>
                             Por hora
@@ -839,16 +895,16 @@ export default function PrecificacaoPage() {
                     </div>
 
                     <button type="button" onClick={() => setShowAdvanced((v) => !v)} className="text-xs text-blue-400 hover:underline">
-                      {showAdvanced ? "Ocultar avançado" : "Avançado (energia, mão de obra)"}
+                      {showAdvanced ? "Ocultar avançado" : "Mão de obra e energia"}
                     </button>
                     {showAdvanced && (
                       <div className="grid grid-cols-1 gap-3 border-t border-neutral-800 pt-3 sm:grid-cols-2">
                         <div>
-                          <label className="mb-1 block text-xs text-neutral-500">Energia (kWh) — automático se a impressora tiver potência salva</label>
+                          <label className="mb-1 block text-xs text-neutral-500">Luz (kWh por peça) — automático quando o forno tem potência salva</label>
                           <input type="number" value={energyKwh.toFixed(3)} disabled className="w-full rounded border border-neutral-800 bg-neutral-900/50 px-3 py-2 text-sm text-neutral-500" />
                         </div>
                         <div>
-                          <label className="mb-1 block text-xs text-neutral-500">Mão de obra (h)</label>
+                          <label className="mb-1 block text-xs text-neutral-500">Mão de obra por peça (h) — modelar, tornear, acabar, esmaltar</label>
                           <input type="number" step="0.1" value={laborHours} onChange={(e) => setLaborHours(e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
                         </div>
                       </div>
@@ -1009,7 +1065,7 @@ export default function PrecificacaoPage() {
           <thead>
             <tr className="border-b-2 border-black">
               <th className="py-2 text-left">Peça</th>
-              <th className="py-2 text-left">Impressora</th>
+              <th className="py-2 text-left">Forno</th>
               <th className="py-2 text-right">Peso</th>
               <th className="py-2 text-right">Qtd.</th>
               <th className="py-2 text-right">Custo/un.</th>

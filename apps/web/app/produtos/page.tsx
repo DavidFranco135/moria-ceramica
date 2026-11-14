@@ -20,8 +20,8 @@ type BomLine = { material_id: string; quantity_g: string };
 // Linhas da conta de preço, na ordem da fórmula (domain/calculator/engine.py).
 const CALC_ROWS: { key: keyof ProductCost; label: string }[] = [
   { key: "material_cost", label: "Material (+ itens extras)" },
-  { key: "waste_cost", label: "Desperdício" },
-  { key: "energy_cost", label: "Energia" },
+  { key: "waste_cost", label: "Perdas (trincas e quebras)" },
+  { key: "energy_cost", label: "Luz do forno" },
   { key: "machine_cost", label: "Máquina / depreciação" },
   { key: "labor_cost", label: "Mão de obra" },
   { key: "packaging_cost", label: "Embalagem" },
@@ -887,12 +887,12 @@ export default function ProdutosPage() {
             </div>
             {mode === "simples" ? (
               <p className="text-xs text-neutral-500">
-                Só nome e preço — sem máquina, material ou perfil de custo.
+                Só nome e preço — sem forno, material ou perfil de custo.
               </p>
             ) : !bomLines.some((l) => l.material_id && Number(l.quantity_g) > 0) &&
               !(Number(printTimeHours) > 0) ? (
               <p className="text-xs text-yellow-400">
-                Sem materiais nem tempo de impressão, o produto fica <strong>sem preço</strong>.{" "}
+                Sem materiais nem tempo de forno, o produto fica <strong>sem preço</strong>.{" "}
                 <button type="button" onClick={() => switchToManualPrice()} className="text-blue-400 hover:underline">
                   Digitar o preço (Simples)
                 </button>
@@ -921,9 +921,9 @@ export default function ProdutosPage() {
                 </>
               ) : (
                 <>
-                  <input type="number" step="0.01" placeholder="Tempo de impressão (h)" value={printTimeHours} onChange={(e) => setPrintTimeHours(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
+                  <input type="number" step="0.01" placeholder="Horas de forno por peça" value={printTimeHours} onChange={(e) => setPrintTimeHours(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
                   <select value={machineId} onChange={(e) => setMachineId(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2">
-                    <option value="">Máquina (opcional)</option>
+                    <option value="">Forno (opcional)</option>
                     {machines.map((m) => (
                       <option key={m.id} value={m.id}>{m.name}</option>
                     ))}
@@ -1291,9 +1291,9 @@ export default function ProdutosPage() {
                                     : "nenhum material"}
                                   {" · "}
                                   {product.print_time_hours
-                                    ? `${product.print_time_hours} h de impressão${machine ? ` na ${machine.name} a ${formatCurrency(machine.cost_per_hour ?? 0)}/h (cadastro em Máquinas)` : " sem máquina"}`
-                                    : "sem tempo de impressão"}
-                                  {" · "}energia pela potência da máquina{machine?.power_watts ? ` (${machine.power_watts} W)` : " (sem potência cadastrada = R$ 0)"} · sem mão de obra nem itens extras
+                                    ? `${product.print_time_hours} h de forno${machine ? ` no ${machine.name} a ${formatCurrency(machine.cost_per_hour ?? 0)}/h (cadastro em Fornos)` : " sem forno"}`
+                                    : "sem tempo de forno"}
+                                  {" · "}luz pela potência do forno{machine?.power_watts ? ` (${machine.power_watts} W)` : " (sem potência cadastrada = R$ 0)"} · sem mão de obra nem itens extras
                                   {profile ? ` · margem do perfil “${profile.name}”: ${profile.profit_margin_percentage}%` : ""}
                                 </li>
                                 )}

@@ -9,9 +9,16 @@ import type { Machine } from "@/lib/types";
 import { AppShell } from "@/components/AppShell";
 
 const STATUS_LABELS: Record<string, string> = {
-  active: "Ativa",
+  active: "Em uso",
   maintenance: "Manutenção",
-  inactive: "Inativa",
+  inactive: "Parado",
+};
+
+const TYPE_LABELS: Record<string, string> = {
+  forno_eletrico: "Forno elétrico",
+  forno_gas: "Forno a gás",
+  torno: "Torno",
+  outro: "Outro equipamento",
 };
 
 const STATUS_TONE: Record<string, string> = {
@@ -33,7 +40,7 @@ export default function MaquinasPage() {
   const [name, setName] = useState("");
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
-  const [technology, setTechnology] = useState("FDM");
+  const [technology, setTechnology] = useState("forno_eletrico");
   const [costPerHour, setCostPerHour] = useState("");
   const [powerWatts, setPowerWatts] = useState("");
   const [volX, setVolX] = useState("");
@@ -49,7 +56,7 @@ export default function MaquinasPage() {
       const data = await apiFetch<Machine[]>(`${orgPath}/machines`, { accessToken });
       setMachines(data);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Falha ao carregar máquinas.");
+      setError(err instanceof ApiError ? err.message : "Falha ao carregar os equipamentos.");
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +76,7 @@ export default function MaquinasPage() {
     setName("");
     setBrand("");
     setModel("");
-    setTechnology("FDM");
+    setTechnology("forno_eletrico");
     setCostPerHour("");
     setPowerWatts("");
     setVolX("");
@@ -131,7 +138,7 @@ export default function MaquinasPage() {
       resetForm();
       await load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Falha ao salvar máquina.");
+      setError(err instanceof ApiError ? err.message : "Falha ao salvar o equipamento.");
     } finally {
       setIsSaving(false);
     }
@@ -139,13 +146,13 @@ export default function MaquinasPage() {
 
   async function handleDelete(m: Machine) {
     if (!accessToken) return;
-    if (!window.confirm(`Excluir a máquina "${m.name}"?`)) return;
+    if (!window.confirm(`Excluir "${m.name}"?`)) return;
     setError(null);
     try {
       await apiFetch(`${orgPath}/machines/${m.id}`, { method: "DELETE", accessToken });
       await load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Falha ao excluir máquina.");
+      setError(err instanceof ApiError ? err.message : "Falha ao excluir o equipamento.");
     }
   }
 
@@ -158,17 +165,17 @@ export default function MaquinasPage() {
   }
 
   return (
-    <AppShell title="Máquinas">
+    <AppShell title="Fornos e equipamentos">
       <div className="mx-auto max-w-5xl space-y-6">
         {error && <p className="rounded bg-red-950 p-2 text-sm text-red-300">{error}</p>}
 
         <div className="flex items-center justify-between">
-          <p className="text-sm text-neutral-500">{machines.length} máquina(s) cadastrada(s)</p>
+          <p className="text-sm text-neutral-500">{machines.length} equipamento(s) cadastrado(s)</p>
           <button
             onClick={() => (showForm ? resetForm() : setShowForm(true))}
             className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500"
           >
-            {showForm ? "Cancelar" : "+ Nova máquina"}
+            {showForm ? "Cancelar" : "+ Novo forno ou equipamento"}
           </button>
         </div>
 
@@ -179,21 +186,22 @@ export default function MaquinasPage() {
           >
             <input required placeholder="Nome" value={name} onChange={(e) => setName(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
             <select value={technology} onChange={(e) => setTechnology(e.target.value)} disabled={!!editingId} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2 disabled:opacity-50">
-              <option value="FDM">FDM</option>
-              <option value="SLA">SLA</option>
-              <option value="MSLA">MSLA</option>
+              <option value="forno_eletrico">Forno elétrico</option>
+              <option value="forno_gas">Forno a gás</option>
+              <option value="torno">Torno</option>
+              <option value="outro">Outro equipamento</option>
             </select>
             <input placeholder="Marca" value={brand} onChange={(e) => setBrand(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
             <input placeholder="Modelo" value={model} onChange={(e) => setModel(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
-            <input type="number" step="0.01" placeholder="Custo por hora (R$)" value={costPerHour} onChange={(e) => setCostPerHour(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
-            <input type="number" step="1" placeholder="Potência (W)" value={powerWatts} onChange={(e) => setPowerWatts(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
+            <input type="number" step="0.01" placeholder="Desgaste por hora de uso (R$)" value={costPerHour} onChange={(e) => setCostPerHour(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
+            <input type="number" step="1" placeholder="Potência (W) — ex.: 6000 para 6 kW" value={powerWatts} onChange={(e) => setPowerWatts(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
             <div className="grid grid-cols-3 gap-2 sm:col-span-2">
-              <input type="number" placeholder="X mm" value={volX} onChange={(e) => setVolX(e.target.value)} disabled={!!editingId} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2 disabled:opacity-50" />
-              <input type="number" placeholder="Y mm" value={volY} onChange={(e) => setVolY(e.target.value)} disabled={!!editingId} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2 disabled:opacity-50" />
-              <input type="number" placeholder="Z mm" value={volZ} onChange={(e) => setVolZ(e.target.value)} disabled={!!editingId} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2 disabled:opacity-50" />
+              <input type="number" placeholder="Largura interna (mm)" value={volX} onChange={(e) => setVolX(e.target.value)} disabled={!!editingId} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2 disabled:opacity-50" />
+              <input type="number" placeholder="Profundidade interna (mm)" value={volY} onChange={(e) => setVolY(e.target.value)} disabled={!!editingId} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2 disabled:opacity-50" />
+              <input type="number" placeholder="Altura interna (mm)" value={volZ} onChange={(e) => setVolZ(e.target.value)} disabled={!!editingId} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2 disabled:opacity-50" />
             </div>
             <button type="submit" disabled={isSaving} className="rounded bg-blue-600 px-4 py-2 font-medium disabled:opacity-50 sm:col-span-2">
-              {isSaving ? "Salvando…" : editingId ? "Salvar alterações" : "Salvar máquina"}
+              {isSaving ? "Salvando…" : editingId ? "Salvar alterações" : "Salvar"}
             </button>
           </form>
         )}
@@ -202,7 +210,7 @@ export default function MaquinasPage() {
           {isLoading ? (
             <p className="text-neutral-500">Carregando…</p>
           ) : machines.length === 0 ? (
-            <p className="text-neutral-500">Nenhuma máquina cadastrada.</p>
+            <p className="text-neutral-500">Nenhum forno ou equipamento cadastrado.</p>
           ) : (
             machines.map((m) => (
               <div key={m.id} className="space-y-2 rounded-xl border border-neutral-800 bg-neutral-950/50 p-4">
@@ -213,11 +221,11 @@ export default function MaquinasPage() {
                   </span>
                 </div>
                 <p className="text-xs text-neutral-500">
-                  {m.brand ?? "—"} {m.model ?? ""} · {m.technology}
+                  {m.brand ?? "—"} {m.model ?? ""} · {TYPE_LABELS[m.technology] ?? m.technology}
                 </p>
                 {(m.build_volume_x_mm || m.build_volume_y_mm || m.build_volume_z_mm) && (
                   <p className="text-xs text-neutral-500">
-                    Volume: {m.build_volume_x_mm ?? "—"} x {m.build_volume_y_mm ?? "—"} x {m.build_volume_z_mm ?? "—"} mm
+                    Câmara interna: {m.build_volume_x_mm ?? "—"} x {m.build_volume_y_mm ?? "—"} x {m.build_volume_z_mm ?? "—"} mm
                   </p>
                 )}
                 <p className="text-sm text-neutral-300">

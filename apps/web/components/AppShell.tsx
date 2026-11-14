@@ -96,16 +96,6 @@ function IconPricing({ className }: { className?: string }) {
   );
 }
 
-function IconCard({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
-      <rect x="3" y="5" width="18" height="14" rx="2" />
-      <path d="M3 9.5h18" />
-      <path d="M6.5 14.5h4" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 function IconGrid({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={className}>
@@ -137,9 +127,8 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/estoque", label: "Estoque", icon: IconArchive },
   { href: "/financeiro", label: "Financeiro", icon: IconDollar },
   { href: "/precificacao", label: "Precificação", icon: IconPricing },
-  { href: "/maquinas", label: "Máquinas", icon: IconCpu },
-  { href: "/materiais", label: "Materiais", icon: IconLayers },
-  { href: "/billing", label: "Faturamento", icon: IconCard },
+  { href: "/maquinas", label: "Fornos", icon: IconCpu },
+  { href: "/materiais", label: "Argilas e esmaltes", icon: IconLayers },
 ];
 
 function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {

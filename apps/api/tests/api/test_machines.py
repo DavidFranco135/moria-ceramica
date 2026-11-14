@@ -11,7 +11,7 @@ def _create_machine(client: TestClient, org_id: str, headers: dict, **overrides)
     payload = {
         "name": "Ender 3",
         "brand": "Creality",
-        "technology": "FDM",
+        "technology": "forno_eletrico",
         "build_volume_x_mm": 220,
         "build_volume_y_mm": 220,
         "build_volume_z_mm": 250,
@@ -231,7 +231,7 @@ def test_viewer_cannot_create_machine(client: TestClient):
 
     response = client.post(
         f"/api/v1/organizations/{org_id}/machines",
-        json={"name": "Not allowed", "technology": "FDM"},
+        json={"name": "Not allowed", "technology": "forno_eletrico"},
         headers=auth_headers(viewer["access_token"]),
     )
     assert response.status_code == 403

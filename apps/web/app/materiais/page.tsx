@@ -117,7 +117,7 @@ export default function MateriaisPage() {
   }
 
   return (
-    <AppShell title="Materiais">
+    <AppShell title="Argilas e esmaltes">
       <div className="mx-auto max-w-5xl space-y-6">
         {error && <p className="rounded bg-red-950 p-2 text-sm text-red-300">{error}</p>}
 
@@ -137,8 +137,8 @@ export default function MateriaisPage() {
             className="grid grid-cols-1 gap-3 rounded-xl border border-neutral-800 bg-neutral-950/50 p-4 sm:grid-cols-2"
           >
             <input required placeholder="Nome" value={name} onChange={(e) => setName(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
-            <input required placeholder="Tipo (ex: PLA, PETG)" value={type} onChange={(e) => setType(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
-            <input placeholder="Cor" value={color} onChange={(e) => setColor(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
+            <input required placeholder="Tipo (ex: argila, esmalte, engobe)" value={type} onChange={(e) => setType(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
+            <input placeholder="Cor (ex: branca, verde sálvia)" value={color} onChange={(e) => setColor(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
             <input type="number" step="0.01" placeholder="Custo por kg (R$)" value={costPerKg} onChange={(e) => setCostPerKg(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
             <input placeholder="Fornecedor" value={supplier} onChange={(e) => setSupplier(e.target.value)} className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2" />
             <button type="submit" disabled={isSaving} className="rounded bg-blue-600 px-4 py-2 font-medium disabled:opacity-50 sm:col-span-2">

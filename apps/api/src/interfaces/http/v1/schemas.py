@@ -220,6 +220,22 @@ class QuoteExtraItem(BaseModel):
     cost: float = Field(ge=0)
 
 
+class QuoteFiring(BaseModel):
+    """Dados da queima de uma peça de cerâmica.
+
+    O forno queima várias peças de uma vez, então o tempo de forno e a
+    energia de cada peça são a parte dela na fornada:
+    horas por queima x número de queimas / peças por fornada.
+    `power_usage_percentage` é quanto da potência nominal o forno usa em
+    média durante a queima (ele liga e desliga para seguir a curva).
+    """
+
+    hours_per_firing: float = Field(ge=0)
+    firings: int = Field(default=2, ge=1, le=10)
+    batch_size: int = Field(default=1, ge=1)
+    power_usage_percentage: float = Field(default=100, ge=0, le=100)
+
+
 class CreateQuoteRequest(BaseModel):
     cost_profile_id: UUID
     project_id: UUID | None = None
@@ -241,6 +257,7 @@ class CreateQuoteRequest(BaseModel):
     extra_items: list[QuoteExtraItem] | None = None
     depreciation_mode: str | None = Field(default=None, pattern="^(hora|peca)$")
     depreciation_value: float | None = Field(default=None, ge=0)
+    firing: QuoteFiring | None = None
 
     @model_validator(mode="after")
     def _project_fields_go_together(self) -> "CreateQuoteRequest":
@@ -261,6 +278,7 @@ class UpdateQuoteRequest(BaseModel):
     print_time_hours: float | None = Field(default=None, ge=0)
     depreciation_mode: str | None = Field(default=None, pattern="^(hora|peca)$")
     depreciation_value: float | None = Field(default=None, ge=0)
+    firing: QuoteFiring | None = None
     labor_hours: float | None = Field(default=None, ge=0)
     profit_margin_percentage: float | None = Field(default=None, ge=0)
     quantity: int | None = Field(default=None, ge=1)
@@ -282,6 +300,7 @@ class QuoteResponse(BaseModel):
     print_time_hours: float | None
     depreciation_mode: str | None
     depreciation_value: float | None
+    firing: QuoteFiring | None = None
     labor_hours: float | None
     profit_margin_percentage: float | None
     quantity: int
@@ -296,7 +315,7 @@ class QuoteResponse(BaseModel):
 
 
 _ORDER_STATUS_PATTERN = (
-    "^(quote|order|paid|production|printing|finishing|packaging|delivered|completed|cancelled)$"
+    "^(quote|order|paid|production|firing|finishing|packaging|delivered|completed|cancelled)$"
 )
 
 
@@ -513,7 +532,7 @@ class ProductCostResponse(BaseModel):
 class CreateInventoryItemRequest(BaseModel):
     material_id: UUID | None = None
     name: str = Field(min_length=2, max_length=200)
-    category: str = Field(pattern="^(filament|resin|component|packaging|spare_part)$")
+    category: str = Field(pattern="^(argila|esmalte|pigmento|embalagem|ferramenta|outro)$")
     unit: str = Field(pattern="^(g|kg|un)$")
     minimum_stock: float = Field(default=0, ge=0)
     unit_cost: float | None = Field(default=None, ge=0)
@@ -617,7 +636,7 @@ class CreateMachineRequest(BaseModel):
     name: str = Field(min_length=2, max_length=200)
     brand: str | None = Field(default=None, max_length=100)
     model: str | None = Field(default=None, max_length=100)
-    technology: str = Field(pattern="^(FDM|SLA|MSLA)$")
+    technology: str = Field(pattern="^(forno_eletrico|forno_gas|torno|outro)$")
     build_volume_x_mm: float | None = Field(default=None, gt=0)
     build_volume_y_mm: float | None = Field(default=None, gt=0)
     build_volume_z_mm: float | None = Field(default=None, gt=0)

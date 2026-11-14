@@ -247,7 +247,7 @@ def test_public_price_of_recipe_products_matches_the_product_cost(client: TestCl
         headers=headers,
     ).json()
     pla = client.post(
-        f"{base}/materials", json={"name": "PLA", "type": "filament", "cost_per_kg": 120.0}, headers=headers
+        f"{base}/materials", json={"name": "PLA", "type": "argila", "cost_per_kg": 120.0}, headers=headers
     )
     assert pla.status_code == 201, pla.text
     pla_id = pla.json()["id"]

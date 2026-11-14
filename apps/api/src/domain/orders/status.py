@@ -9,7 +9,7 @@ _SEQUENCE = [
     "order",
     "paid",
     "production",
-    "printing",
+    "firing",
     "finishing",
     "packaging",
     "delivered",

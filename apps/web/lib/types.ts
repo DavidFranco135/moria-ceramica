@@ -140,7 +140,7 @@ export const ORDER_STATUSES = [
   "order",
   "paid",
   "production",
-  "printing",
+  "firing",
   "finishing",
   "packaging",
   "delivered",
@@ -186,11 +186,12 @@ export type OrderItem = {
 };
 
 export const INVENTORY_CATEGORIES = [
-  "filament",
-  "resin",
-  "component",
-  "packaging",
-  "spare_part",
+  "argila",
+  "esmalte",
+  "pigmento",
+  "embalagem",
+  "ferramenta",
+  "outro",
 ] as const;
 
 export type InventoryItem = {
@@ -272,6 +273,12 @@ export type Quote = {
   print_time_hours: number | null;
   depreciation_mode: "hora" | "peca" | null;
   depreciation_value: number | null;
+  firing: {
+    hours_per_firing: number;
+    firings: number;
+    batch_size: number;
+    power_usage_percentage: number;
+  } | null;
   labor_hours: number | null;
   profit_margin_percentage: number | null;
   quantity: number;

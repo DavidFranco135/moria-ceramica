@@ -117,7 +117,7 @@ def delete_order(db: Session, *, organization_id: UUID, order_id: UUID) -> None:
     db.commit()
 
 
-_IN_PROGRESS_STATUSES = {"production", "printing", "finishing", "packaging"}
+_IN_PROGRESS_STATUSES = {"production", "firing", "finishing", "packaging"}
 _FINISHED_STATUSES = {"delivered", "completed"}
 
 

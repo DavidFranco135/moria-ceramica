@@ -9,11 +9,12 @@ import type { InventoryItem } from "@/lib/types";
 import { AppShell } from "@/components/AppShell";
 
 const CATEGORY_LABELS: Record<string, string> = {
-  filament: "Filamento",
-  resin: "Resina",
-  component: "Componente",
-  packaging: "Embalagem",
-  spare_part: "Peça de reposição",
+  argila: "Argila",
+  esmalte: "Esmalte",
+  pigmento: "Pigmento / engobe",
+  embalagem: "Embalagem",
+  ferramenta: "Ferramenta",
+  outro: "Outro",
 };
 
 const MOVEMENT_LABELS: Record<string, string> = {
@@ -37,7 +38,7 @@ export default function EstoquePage() {
   const [movementItemId, setMovementItemId] = useState<string | null>(null);
 
   const [name, setName] = useState("");
-  const [category, setCategory] = useState("filament");
+  const [category, setCategory] = useState("argila");
   const [unit, setUnit] = useState("g");
   const [minimumStock, setMinimumStock] = useState("0");
   const [unitCost, setUnitCost] = useState("");
@@ -78,7 +79,7 @@ export default function EstoquePage() {
 
   function resetForm() {
     setName("");
-    setCategory("filament");
+    setCategory("argila");
     setUnit("g");
     setMinimumStock("0");
     setUnitCost("");

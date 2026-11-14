@@ -626,14 +626,14 @@ export async function buildOrderPdf(input: OrderPdfInput) {
         term > 0
           ? `Pagamento em até ${term} dias após a emissão, ao favorecido indicado neste documento.`
           : "A produção é iniciada após a aprovação do orçamento e a confirmação do pagamento.",
-        "Peças impressas em 3D podem apresentar pequenas variações de cor e textura, próprias do processo.",
+        "Cada peça é feita à mão: pequenas variações de cor, forma e textura são próprias da cerâmica artesanal.",
       ]
     : [
         term > 0
           ? `Pagamento em até ${term} dias após a emissão, ao favorecido indicado neste documento.`
           : "A produção é iniciada após a confirmação do pagamento (ou da entrada combinada).",
         "Prazo de entrega contado a partir da confirmação do pagamento.",
-        "Peças impressas em 3D podem apresentar pequenas variações de cor e textura, próprias do processo.",
+        "Cada peça é feita à mão: pequenas variações de cor, forma e textura são próprias da cerâmica artesanal.",
       ];
   // Aceite com assinatura só no orçamento (é o que o cliente aprova).
   const withSignature = isQuote;

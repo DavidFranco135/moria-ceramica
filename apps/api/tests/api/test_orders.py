@@ -243,7 +243,7 @@ def test_inventory_movement_can_reference_a_valid_order(client: TestClient):
         f"/api/v1/organizations/{org_id}/inventory-items",
         json={
             "name": "Filamento PLA Branco",
-            "category": "filament",
+            "category": "argila",
             "unit": "g",
             "initial_quantity": 1000,
         },
@@ -267,7 +267,7 @@ def test_inventory_movement_rejects_unknown_order(client: TestClient):
         f"/api/v1/organizations/{org_id}/inventory-items",
         json={
             "name": "Filamento PLA Branco",
-            "category": "filament",
+            "category": "argila",
             "unit": "g",
             "initial_quantity": 1000,
         },
@@ -372,7 +372,7 @@ def test_workflow_transition_moves_production_status(client: TestClient):
         ("order", "todo"),
         ("paid", "todo"),
         ("production", "doing"),
-        ("printing", "doing"),
+        ("firing", "doing"),
         ("finishing", "doing"),
         ("packaging", "doing"),
         ("delivered", "done"),
@@ -393,9 +393,9 @@ def test_edit_can_set_any_status_even_on_finished_orders(client: TestClient):
     url = f"/api/v1/organizations/{org_id}/orders/{order['id']}"
     assert order["production_status"] == "done"
 
-    response = client.patch(url, json={"status": "printing"}, headers=headers)
+    response = client.patch(url, json={"status": "firing"}, headers=headers)
     assert response.status_code == 200, response.text
-    assert response.json()["status"] == "printing"
+    assert response.json()["status"] == "firing"
     assert response.json()["production_status"] == "doing"
 
     response = client.patch(url, json={"status": "cancelled"}, headers=headers)

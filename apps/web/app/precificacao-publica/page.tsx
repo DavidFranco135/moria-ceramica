@@ -9,11 +9,11 @@ function CostBreakdownList({ breakdown }: { breakdown: ReturnType<typeof calcula
     <dl className="grid grid-cols-2 gap-y-2 text-sm">
       <dt className="text-neutral-500">Material + itens adicionais</dt>
       <dd className="text-right">{formatCurrency(breakdown.materialCost)}</dd>
-      <dt className="text-neutral-500">Desperdício</dt>
+      <dt className="text-neutral-500">Perdas (trincas e quebras)</dt>
       <dd className="text-right">{formatCurrency(breakdown.wasteCost)}</dd>
-      <dt className="text-neutral-500">Energia</dt>
+      <dt className="text-neutral-500">Luz do forno</dt>
       <dd className="text-right">{formatCurrency(breakdown.energyCost)}</dd>
-      <dt className="text-neutral-500">Depreciação da máquina</dt>
+      <dt className="text-neutral-500">Desgaste do forno</dt>
       <dd className="text-right">{formatCurrency(breakdown.machineCost)}</dd>
       <dt className="text-neutral-500">Mão de obra</dt>
       <dd className="text-right">{formatCurrency(breakdown.laborCost)}</dd>
@@ -165,7 +165,7 @@ export default function PrecificacaoPublicaPage() {
           <div className="mx-auto max-w-4xl">
             <h1 className="text-lg font-semibold">Calculadora de Precificação — Moriá Cerâmica</h1>
             <p className="text-sm text-neutral-500">
-              Preencha os custos abaixo para calcular o preço de venda sugerido de uma peça impressa em 3D.
+              Preencha os custos abaixo para calcular o preço de venda sugerido de uma peça de cerâmica.
             </p>
           </div>
         </header>
@@ -175,7 +175,7 @@ export default function PrecificacaoPublicaPage() {
             <h2 className="text-sm font-medium text-neutral-300">Custos gerais (energia, mão de obra, taxas)</h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
-                <label className="mb-1 block text-xs text-neutral-500">Energia (R$/kWh)</label>
+                <label className="mb-1 block text-xs text-neutral-500">Tarifa de luz (R$/kWh)</label>
                 <input type="number" step="0.01" value={state.energyCostPerKwh} onChange={(e) => set("energyCostPerKwh", e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
               </div>
               <div>
@@ -187,7 +187,7 @@ export default function PrecificacaoPublicaPage() {
                 <input type="number" step="0.01" value={state.packagingCostFlat} onChange={(e) => set("packagingCostFlat", e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
               </div>
               <div>
-                <label className="mb-1 block text-xs text-neutral-500">Desperdício de material (%)</label>
+                <label className="mb-1 block text-xs text-neutral-500">Perdas: trincas e quebras (%)</label>
                 <input type="number" step="0.1" value={state.wastePct} onChange={(e) => set("wastePct", e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
               </div>
               <div>
@@ -206,43 +206,43 @@ export default function PrecificacaoPublicaPage() {
           </section>
 
           <section className="space-y-3 rounded-xl border border-neutral-800 bg-neutral-950/50 p-4">
-            <h2 className="text-sm font-medium text-neutral-300">Impressora e peça</h2>
+            <h2 className="text-sm font-medium text-neutral-300">Forno e peça</h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <label className="mb-1 block text-xs text-neutral-500">Nome do projeto (peça)</label>
-                <input placeholder='Ex: "Suporte de celular articulado"' value={state.pieceName} onChange={(e) => set("pieceName", e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
+                <label className="mb-1 block text-xs text-neutral-500">Nome da peça</label>
+                <input placeholder='Ex: "Xícara de café 180 ml"' value={state.pieceName} onChange={(e) => set("pieceName", e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
               </div>
               <div>
-                <label className="mb-1 block text-xs text-neutral-500">Impressora (nome/modelo)</label>
-                <input placeholder="Ex: Bambu Lab A1" value={state.printerName} onChange={(e) => set("printerName", e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
+                <label className="mb-1 block text-xs text-neutral-500">Forno (nome/modelo)</label>
+                <input placeholder="Ex: Forno elétrico 6 kW" value={state.printerName} onChange={(e) => set("printerName", e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
               </div>
               <div>
-                <label className="mb-1 block text-xs text-neutral-500">Potência da impressora (W) — opcional, calcula a energia automaticamente</label>
-                <input type="number" step="1" placeholder="Ex: 350" value={state.printerPowerWatts} onChange={(e) => set("printerPowerWatts", e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
+                <label className="mb-1 block text-xs text-neutral-500">Potência média do forno em uso (W) — opcional, calcula a luz automaticamente</label>
+                <input type="number" step="1" placeholder="Ex: 3600" value={state.printerPowerWatts} onChange={(e) => set("printerPowerWatts", e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
               </div>
               <div>
-                <label className="mb-1 block text-xs text-neutral-500">Tempo de impressão (h)</label>
-                <input type="number" step="0.01" placeholder="Ex: 3.5" value={state.printTimeHours} onChange={(e) => set("printTimeHours", e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
+                <label className="mb-1 block text-xs text-neutral-500">Horas de forno por peça (total das queimas ÷ peças da fornada)</label>
+                <input type="number" step="0.01" placeholder="Ex: 0.4" value={state.printTimeHours} onChange={(e) => set("printTimeHours", e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
               </div>
               <div>
                 <label className="mb-1 block text-xs text-neutral-500">Quantidade de peças</label>
                 <input type="number" min={1} value={state.quantity} onChange={(e) => set("quantity", e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
               </div>
               <div>
-                <label className="mb-1 block text-xs text-neutral-500">Peso da peça (g)</label>
-                <input type="number" step="0.1" placeholder="Ex: 25" value={state.weightG} onChange={(e) => set("weightG", e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
+                <label className="mb-1 block text-xs text-neutral-500">Peso de argila por peça (g)</label>
+                <input type="number" step="0.1" placeholder="Ex: 350" value={state.weightG} onChange={(e) => set("weightG", e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
               </div>
               <div>
-                <label className="mb-1 block text-xs text-neutral-500">Custo do filamento por kg (R$)</label>
-                <input type="number" step="0.01" placeholder="Ex: 89.90" value={state.costPerKg} onChange={(e) => set("costPerKg", e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
+                <label className="mb-1 block text-xs text-neutral-500">Custo da argila por kg (R$)</label>
+                <input type="number" step="0.01" placeholder="Ex: 12.00" value={state.costPerKg} onChange={(e) => set("costPerKg", e.target.value)} className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm" />
               </div>
 
               <div className="sm:col-span-2 space-y-2">
-                <label className="block text-xs text-neutral-500">Itens adicionais (embalagem, argola, etiqueta, etc.)</label>
+                <label className="block text-xs text-neutral-500">Outros materiais por peça (esmalte, engobe, pigmento, decalque, etc.)</label>
                 {state.extraItems.map((item, index) => (
                   <div key={index} className="flex flex-col gap-2 sm:flex-row">
                     <input
-                      placeholder="Nome (ex: Embalagem)"
+                      placeholder="Nome (ex: Esmalte branco)"
                       value={item.name}
                       onChange={(e) => updateExtraItem(index, { name: e.target.value })}
                       className="w-full min-w-0 rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm sm:flex-1"
@@ -272,7 +272,7 @@ export default function PrecificacaoPublicaPage() {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="mb-1 block text-xs text-neutral-500">Depreciação da máquina</label>
+                <label className="mb-1 block text-xs text-neutral-500">Desgaste do forno</label>
                 <div className="flex gap-2">
                   <button type="button" onClick={() => set("depreciationMode", "hora")} className={`flex-1 rounded border px-3 py-2 text-sm ${state.depreciationMode === "hora" ? "border-blue-500 bg-blue-950 text-blue-300" : "border-neutral-700 text-neutral-400"}`}>
                     Por hora
@@ -349,15 +349,15 @@ export default function PrecificacaoPublicaPage() {
               <td className="py-2 text-right">{formatCurrency(breakdown.materialCost)}</td>
             </tr>
             <tr className="border-b border-neutral-400">
-              <td className="py-2">Desperdício</td>
+              <td className="py-2">Perdas (trincas e quebras)</td>
               <td className="py-2 text-right">{formatCurrency(breakdown.wasteCost)}</td>
             </tr>
             <tr className="border-b border-neutral-400">
-              <td className="py-2">Energia</td>
+              <td className="py-2">Luz do forno</td>
               <td className="py-2 text-right">{formatCurrency(breakdown.energyCost)}</td>
             </tr>
             <tr className="border-b border-neutral-400">
-              <td className="py-2">Depreciação da máquina</td>
+              <td className="py-2">Desgaste do forno</td>
               <td className="py-2 text-right">{formatCurrency(breakdown.machineCost)}</td>
             </tr>
             <tr className="border-b border-neutral-400">

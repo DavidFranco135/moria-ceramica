@@ -6,7 +6,7 @@ from src.domain.shared.exceptions import InvalidOrderTransitionError
 
 def test_can_advance_one_step():
     validate_transition("quote", "order")
-    validate_transition("production", "printing")
+    validate_transition("production", "firing")
 
 
 def test_can_skip_stages_forward():
@@ -16,7 +16,7 @@ def test_can_skip_stages_forward():
 
 def test_cannot_go_backward():
     with pytest.raises(InvalidOrderTransitionError):
-        validate_transition("printing", "production")
+        validate_transition("firing", "production")
 
 
 def test_cannot_stay_in_the_same_status():
@@ -25,7 +25,7 @@ def test_cannot_stay_in_the_same_status():
 
 
 def test_can_cancel_from_any_non_terminal_stage():
-    for stage in ["quote", "order", "paid", "production", "printing", "finishing", "packaging"]:
+    for stage in ["quote", "order", "paid", "production", "firing", "finishing", "packaging"]:
         validate_transition(stage, "cancelled")
 
 
@@ -59,7 +59,7 @@ def test_rejects_unknown_status_values():
 def test_manual_status_accepts_any_known_status():
     from src.domain.orders.status import validate_status
 
-    for status in ["quote", "order", "paid", "printing", "completed", "cancelled"]:
+    for status in ["quote", "order", "paid", "firing", "completed", "cancelled"]:
         validate_status(status)
     with pytest.raises(InvalidOrderTransitionError):
         validate_status("bogus")

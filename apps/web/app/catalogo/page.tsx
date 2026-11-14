@@ -340,7 +340,7 @@ export default function CatalogoPage() {
               <div className="space-y-1 text-sm text-neutral-400">
                 {viewingProduct.size && <p>Tamanho: {viewingProduct.size}</p>}
                 {viewingProduct.print_time_hours != null && (
-                  <p>Tempo de impressão: {viewingProduct.print_time_hours}h</p>
+                  <p>Tempo de forno: {viewingProduct.print_time_hours}h</p>
                 )}
                 {(() => {
                   const price = viewingProduct.manual_price ?? costs[viewingProduct.id]?.suggested_price;

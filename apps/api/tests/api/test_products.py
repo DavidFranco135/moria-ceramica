@@ -59,10 +59,10 @@ def test_product_list_returns_each_products_own_materials(client: TestClient):
     url, headers = _setup(client)
     org_url = url.rsplit("/products", 1)[0]
     pla = client.post(
-        f"{org_url}/materials", json={"name": "PLA", "type": "filament", "cost_per_kg": 100}, headers=headers
+        f"{org_url}/materials", json={"name": "PLA", "type": "argila", "cost_per_kg": 100}, headers=headers
     ).json()
     petg = client.post(
-        f"{org_url}/materials", json={"name": "PETG", "type": "filament", "cost_per_kg": 120}, headers=headers
+        f"{org_url}/materials", json={"name": "PETG", "type": "argila", "cost_per_kg": 120}, headers=headers
     ).json()
     client.post(url, json={"name": "Vaso", "materials": [{"material_id": pla["id"], "quantity_g": 50}]}, headers=headers)
     client.post(
@@ -142,13 +142,13 @@ def test_calculated_product_price_includes_energy_like_the_pricing_screen(client
     ).json()
     machine = client.post(
         f"{org_url}/machines",
-        json={"name": "Bambu Lab A1", "technology": "FDM", "power_watts": 400, "cost_per_hour": 1.0},
+        json={"name": "Bambu Lab A1", "technology": "forno_eletrico", "power_watts": 400, "cost_per_hour": 1.0},
         headers=headers,
     )
     assert machine.status_code == 201, machine.text
     machine = machine.json()
     material = client.post(
-        f"{org_url}/materials", json={"name": "PLA", "type": "filament", "cost_per_kg": 100}, headers=headers
+        f"{org_url}/materials", json={"name": "PLA", "type": "argila", "cost_per_kg": 100}, headers=headers
     ).json()
     product = client.post(
         url,
@@ -190,7 +190,7 @@ def test_calculated_product_uses_the_full_price_of_its_saved_piece(client: TestC
     org_url = url.rsplit("/products", 1)[0]
     profile = _default_profile(client, org_url, headers)
     material = client.post(
-        f"{org_url}/materials", json={"name": "PLA", "type": "filament", "cost_per_kg": 100}, headers=headers
+        f"{org_url}/materials", json={"name": "PLA", "type": "argila", "cost_per_kg": 100}, headers=headers
     ).json()
     # Peça com itens extras + mão de obra + margem própria (150%).
     piece = client.post(

@@ -390,6 +390,7 @@ class Quote(Base):
     depreciation_value: Mapped[float | None] = mapped_column(
         Numeric(12, 2, asdecimal=False), nullable=True
     )
+    firing: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     labor_hours: Mapped[float | None] = mapped_column(
         Numeric(10, 2, asdecimal=False), nullable=True
     )
