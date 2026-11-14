@@ -22,25 +22,22 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import os
+
+# Na nuvem a Moriá usa sempre o Firestore, em modo de produção. Definido antes
+# de carregar o app, que lê a configuração ao ser importado.
+os.environ.setdefault("DB_BACKEND", "firestore")
+os.environ.setdefault("API_ENV", "production")
+
 from firebase_functions import https_fn, options
 
 from src.main import app as fastapi_app
 
 options.set_global_options(region="us-central1")
 
-_SECRETS = [
-    "DATABASE_URL",
-    "JWT_SECRET",
-    "API_ENV",
-    "S3_ENDPOINT_URL",
-    "S3_ACCESS_KEY",
-    "S3_SECRET_KEY",
-    "S3_BUCKET",
-    "S3_REGION",
-    "API_CORS_ORIGINS",
-    "IMGBB_API_KEY",
-    "MIGRATION_SECRET", "DB_BACKEND",
-]
+# Só o que é realmente segredo. Criados uma vez com
+# `firebase functions:secrets:set JWT_SECRET` e `... IMGBB_API_KEY`.
+_SECRETS = ["JWT_SECRET", "IMGBB_API_KEY"]
 
 
 def _call_asgi_via_wsgi_environ(environ: dict) -> tuple[bytes, int, list[tuple[str, str]]]:
@@ -94,7 +91,9 @@ def _call_asgi_via_wsgi_environ(environ: dict) -> tuple[bytes, int, list[tuple[s
     invoker="public",
     memory=options.MemoryOption.GB_1,
     timeout_sec=300,
-    min_instances=1,
+    # 0 = sem custo fixo; a primeira chamada depois de um tempo parado demora
+    # alguns segundos. Subir para 1 deixa sempre rápido, com custo mensal.
+    min_instances=0,
     secrets=_SECRETS,
 )
 def api(req: https_fn.Request) -> https_fn.Response:

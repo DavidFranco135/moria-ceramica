@@ -18,6 +18,7 @@ Projeto iniciado a partir da base do KeyStudio3D.
 ## Configuração
 
 - Firebase: projeto `moria-ceramica` (`.firebaserc`). A API usa Cloud Functions, que exige o plano Blaze.
-- Segredos da API (uma vez): `firebase functions:secrets:set <NOME>` para `JWT_SECRET`, `IMGBB_API_KEY`, `API_CORS_ORIGINS`, `DB_BACKEND` (valor `firestore`) e os demais listados em `apps/api/main.py`.
+- Segredos da API (uma vez): `firebase functions:secrets:set JWT_SECRET` e `firebase functions:secrets:set IMGBB_API_KEY`.
+- Deploy da API: em `apps/api`, criar o ambiente `venv` com Python 3.12 e instalar `requirements.txt`; depois, na raiz, `firebase deploy --only functions,firestore`.
 - Cloudflare Pages: pasta raiz `apps/web`, comando `npm run build`, saída `out`, variável `NEXT_PUBLIC_API_URL` com o endereço da API.
 - A logo em `apps/web/public/brand/` veio da foto de perfil do Instagram (baixa resolução). Trocar pelo arquivo original quando disponível.
