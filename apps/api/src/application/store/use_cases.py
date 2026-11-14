@@ -174,6 +174,7 @@ def get_public_store(db: Session, *, slug: str) -> PublicStoreResponse:
             theme=settings.theme,
             slides=settings.slides,
             highlights=settings.highlights,
+            reels=settings.reels,
             categories=public_categories,
             featured_product_ids=featured_ordered,
         ),

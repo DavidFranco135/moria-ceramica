@@ -2,7 +2,7 @@ from datetime import date, datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field, model_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 from src.domain.auth.roles import Role
 
@@ -759,14 +759,29 @@ class StoreSettings(BaseModel):
     logo_url: str = Field(default="", max_length=2000)
     tagline: str = Field(default="", max_length=200)
     about: str = Field(default="", max_length=2000)
-    whatsapp: str = Field(default="5521970386065", max_length=20)
-    instagram: str = Field(default="", max_length=120)
+    whatsapp: str = Field(default="5521984986236", max_length=20)
+    instagram: str = Field(default="moriaceramica.atelie", max_length=120)
     hours: str = Field(default="", max_length=300)
     address: str = Field(default="", max_length=300)
     accent: str = Field(default="terracota", max_length=20)
     theme: str = Field(default="moria", pattern="^(light|dark|moria)$")
     slides: list[StoreSlide] = Field(default_factory=list, max_length=10)
     highlights: list[StoreHighlight] = Field(default_factory=list, max_length=3)
+    # Links de Reels/posts do Instagram mostrados na vitrine (vídeos incorporados).
+    reels: list[str] = Field(default_factory=list, max_length=12)
+
+    @field_validator("reels")
+    @classmethod
+    def _only_instagram_links(cls, value: list[str]) -> list[str]:
+        import re
+
+        pattern = re.compile(r"^https://(www\.)?instagram\.com/([A-Za-z0-9_.]+/)?(reel|reels|p|tv)/[A-Za-z0-9_-]+")
+        cleaned = [link.strip() for link in value if link.strip()]
+        for link in cleaned:
+            if len(link) > 300 or not pattern.match(link):
+                raise ValueError(f"Link do Instagram inválido: {link[:80]}")
+        return cleaned
+
     hidden_product_ids: list[str] = Field(default_factory=list)
     # A ordem desta lista é a ordem dos destaques na vitrine.
     featured_product_ids: list[str] = Field(default_factory=list)
@@ -870,6 +885,7 @@ class PublicStoreSettings(BaseModel):
     theme: str
     slides: list[StoreSlide]
     highlights: list[StoreHighlight]
+    reels: list[str] = Field(default_factory=list)
     categories: list[PublicCategory] = Field(default_factory=list)
     # Ids dos destaques visíveis, já na ordem escolhida pelo lojista.
     featured_product_ids: list[str] = Field(default_factory=list)

@@ -31,13 +31,14 @@ const EMPTY: StoreSettings = {
   tagline: "",
   about: "",
   whatsapp: DEFAULT_WHATSAPP,
-  instagram: "",
+  instagram: "moriaceramica.atelie",
   hours: "",
   address: "",
   accent: "terracota",
   theme: "moria",
   slides: [],
   highlights: [],
+  reels: [],
   hidden_product_ids: [],
   featured_product_ids: [],
   product_order: [],
@@ -666,6 +667,19 @@ export default function LojaAdminPage() {
                 <div className="space-y-1">
                   <label className="text-xs text-neutral-500">Instagram (opcional)</label>
                   <input className={input} value={settings.instagram} placeholder="@sualoja" maxLength={120} onChange={(e) => update({ instagram: e.target.value })} />
+                </div>
+                <div className="space-y-1 sm:col-span-2">
+                  <label className="text-xs text-neutral-500">Vídeos do Instagram (Reels) — um link por linha, até 12</label>
+                  <textarea
+                    className={input}
+                    rows={3}
+                    value={(settings.reels ?? []).join("\n")}
+                    placeholder="https://www.instagram.com/reel/XXXXXXXX/"
+                    onChange={(e) => update({ reels: e.target.value.split("\n").map((l) => l.trim()).slice(0, 12) })}
+                  />
+                  <p className="text-[11px] text-neutral-600">
+                    No Instagram, abra o Reel, toque em Compartilhar → Copiar link e cole aqui. O vídeo aparece na página inicial da loja.
+                  </p>
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs text-neutral-500">Horário de atendimento</label>

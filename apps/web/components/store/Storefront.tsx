@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { apiFetch, ApiError } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/format";
 import type { CartLine, OrderLine, PublicProduct, PublicStore, StoreSlide } from "@/lib/store";
-import { formatWhatsappDisplay, priceLabel, themeVars, whatsappLink } from "@/lib/store";
+import { formatWhatsappDisplay, instagramEmbedUrl, priceLabel, themeVars, whatsappLink } from "@/lib/store";
 import { focusStyle } from "@/lib/focus";
 import { matchesSearch } from "@/lib/search";
 import { trackStoreEvent, useVisitTracker } from "@/lib/visits";
@@ -414,6 +415,10 @@ export function Storefront({ slug }: { slug: string }) {
     settings.whatsapp,
     `Olá, ${storeName}! Quero encomendar uma peça personalizada.`
   );
+  const reelEmbeds = (settings.reels ?? [])
+    .map((link) => instagramEmbedUrl(link))
+    .filter((url): url is string => url !== null);
+  const instagramHandle = settings.instagram.replace(/^@/, "").trim();
   const openProduct = openProductId ? productsById.get(openProductId) ?? null : null;
   // Todos os destaques marcados, na ordem escolhida pelo lojista. (Antes a lista
   // era cortada em 8 e seguia a ordem de cadastro, por isso "sumiam" destaques.)
@@ -722,6 +727,40 @@ export function Storefront({ slug }: { slug: string }) {
                 </Reveal>
               )}
 
+              {reelEmbeds.length > 0 && (
+                <section className="space-y-6">
+                  <SectionTitle
+                    eyebrow="Do ateliê"
+                    title="Do barro à mesa"
+                    action={
+                      instagramHandle ? (
+                        <a
+                          href={`https://instagram.com/${instagramHandle}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--accent)] hover:underline"
+                        >
+                          <IconInstagram className="h-4 w-4" />@{instagramHandle}
+                        </a>
+                      ) : undefined
+                    }
+                  />
+                  <div className="flex snap-x gap-4 overflow-x-auto pb-3">
+                    {reelEmbeds.map((url) => (
+                      <iframe
+                        key={url}
+                        src={url}
+                        title="Vídeo do Instagram"
+                        loading="lazy"
+                        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                        allowFullScreen
+                        className="h-[560px] w-[320px] shrink-0 snap-start rounded-3xl border border-[var(--line)] bg-[var(--surface)]"
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
+
               <Reveal>
                 <section className="relative overflow-hidden rounded-[32px] bg-[var(--accent)] p-8 text-[var(--accent-ink)] sm:p-14">
                   <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-white/10 blur-2xl" />
@@ -981,8 +1020,77 @@ export function Storefront({ slug }: { slug: string }) {
         </div>
       </main>
 
-      <footer className="border-t border-[var(--line)] py-8 text-center text-xs text-[var(--muted)]">
-        © {new Date().getFullYear()} {storeName}. Todos os direitos reservados.
+      <footer className="border-t border-[var(--line)] bg-[var(--surface)] pb-28 text-sm text-[var(--muted)]">
+        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
+          <div className="space-y-3">
+            <p className="font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--ink)]">{storeName}</p>
+            {settings.tagline && <p className="leading-relaxed">{settings.tagline}</p>}
+            <p className="leading-relaxed">Cada peça é feita à mão: pequenas variações de cor e forma fazem parte dela.</p>
+          </div>
+
+          <nav aria-label="Navegação" className="space-y-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--ink)]">Loja</p>
+            <ul className="space-y-2">
+              {TABS.map((label, i) => (
+                <li key={label}>
+                  <button onClick={() => goTab(i)} className="transition hover:text-[var(--accent)]">
+                    {label}
+                  </button>
+                </li>
+              ))}
+              <li>
+                <a href={waCustom} target="_blank" rel="noopener noreferrer" className="transition hover:text-[var(--accent)]">
+                  Peças personalizadas
+                </a>
+              </li>
+            </ul>
+          </nav>
+
+          <div className="space-y-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--ink)]">Atendimento</p>
+            <ul className="space-y-2">
+              <li>
+                <a href={waGeneral} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 transition hover:text-[var(--accent)]">
+                  <IconWhatsapp className="h-4 w-4" />
+                  {formatWhatsappDisplay(settings.whatsapp)}
+                </a>
+              </li>
+              {instagramHandle && (
+                <li>
+                  <a href={`https://instagram.com/${instagramHandle}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 transition hover:text-[var(--accent)]">
+                    <IconInstagram className="h-4 w-4" />@{instagramHandle}
+                  </a>
+                </li>
+              )}
+              {settings.hours && <li className="whitespace-pre-line">{settings.hours}</li>}
+              {settings.address && <li className="whitespace-pre-line">{settings.address}</li>}
+            </ul>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--ink)]">Compra e entrega</p>
+            <ul className="space-y-2 leading-relaxed">
+              <li>Pedido enviado pelo WhatsApp, sem cadastro.</li>
+              <li>Pagamento, prazo e entrega combinados no atendimento.</li>
+              <li>Peças sob encomenda são produzidas após a confirmação do pedido.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="border-t border-[var(--line)]">
+          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-5 text-xs sm:flex-row sm:px-6">
+            <p>
+              © {new Date().getFullYear()} {storeName}. Todos os direitos reservados.
+            </p>
+            <p>
+              Produzido por{" "}
+              {/* Acesso à área interna: parece texto comum, mas leva ao login. */}
+              <Link href="/login" className="cursor-text font-semibold tracking-[0.15em] text-inherit no-underline">
+                NIKLAUS
+              </Link>
+            </p>
+          </div>
+        </div>
       </footer>
 
       <div className="fixed bottom-5 right-5 z-40 flex flex-col items-end gap-3">

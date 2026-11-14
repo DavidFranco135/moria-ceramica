@@ -35,6 +35,8 @@ export type StoreSettings = {
   theme: StoreTheme;
   slides: StoreSlide[];
   highlights: StoreHighlight[];
+  // Links de Reels/posts do Instagram mostrados na vitrine.
+  reels: string[];
   hidden_product_ids: string[];
   // A ordem de featured_product_ids é a ordem dos destaques na vitrine.
   featured_product_ids: string[];
@@ -85,8 +87,8 @@ export type CartLine = { id: string; qty: number; note: string };
 // partir do nome "Moriá Cerâmica"; se for outro, defina NEXT_PUBLIC_STORE_SLUG.
 export const STORE_SLUG = process.env.NEXT_PUBLIC_STORE_SLUG || "moria-ceramica";
 
-// WhatsApp da loja: definido em Minha Loja. Vazio até a loja preencher.
-export const DEFAULT_WHATSAPP = "";
+// WhatsApp da Moriá Cerâmica (pode ser trocado em Minha Loja).
+export const DEFAULT_WHATSAPP = "5521984986236";
 
 type Accent = {
   label: string;
@@ -169,6 +171,15 @@ export function formatWhatsappDisplay(number: string): string {
   if (d.length === 11) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
   if (d.length === 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
   return number;
+}
+
+// Endereço do player incorporado de um Reel/post do Instagram, ou null se o
+// link não for de um vídeo/post.
+export function instagramEmbedUrl(link: string): string | null {
+  const m = link.trim().match(/^https:\/\/(?:www\.)?instagram\.com\/(?:[A-Za-z0-9_.]+\/)?(reel|reels|p|tv)\/([A-Za-z0-9_-]+)/);
+  if (!m) return null;
+  const kind = m[1] === "reels" ? "reel" : m[1];
+  return `https://www.instagram.com/${kind}/${m[2]}/embed`;
 }
 
 export type OrderLine = { product: PublicProduct; qty: number; note: string };

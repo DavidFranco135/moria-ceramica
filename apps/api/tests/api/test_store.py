@@ -32,7 +32,7 @@ def test_store_settings_default_and_save(client: TestClient):
 
     response = client.get(f"/api/v1/organizations/{org_id}/store", headers=headers)
     assert response.status_code == 200
-    assert response.json()["settings"]["whatsapp"] == "5521970386065"
+    assert response.json()["settings"]["whatsapp"] == "5521984986236"
 
     payload = {
         "display_name": "Atelie 3D Premium",
@@ -276,4 +276,19 @@ def test_store_accepts_the_moria_brand_theme(client: TestClient):
     assert response.status_code == 200, response.text
     assert client.get(f"/api/v1/public/stores/{slug}").json()["settings"]["theme"] == "moria"
     bad = client.put(f"/api/v1/organizations/{org_id}/store", json={"theme": "neon"}, headers=headers)
+    assert bad.status_code == 422
+
+
+def test_store_reels_accept_only_instagram_links(client: TestClient):
+    owner = register_user(client, organization_name="Reels Shop", email="reels@moria.io")
+    headers = auth_headers(owner["access_token"])
+    org = client.get("/api/v1/users/me", headers=headers).json()["organizations"][0]["organization"]
+    url = f"/api/v1/organizations/{org['id']}/store"
+
+    ok = client.put(url, json={"reels": ["https://www.instagram.com/reel/DAbc123_x/", " "]}, headers=headers)
+    assert ok.status_code == 200, ok.text
+    public = client.get(f"/api/v1/public/stores/{org['slug']}").json()
+    assert public["settings"]["reels"] == ["https://www.instagram.com/reel/DAbc123_x/"]
+
+    bad = client.put(url, json={"reels": ["https://evil.example/reel/abc"]}, headers=headers)
     assert bad.status_code == 422
