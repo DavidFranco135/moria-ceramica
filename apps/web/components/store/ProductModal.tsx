@@ -27,6 +27,7 @@ export function ProductModal({
   onOpenProduct,
   productionDays,
   shareUrl,
+  promoActive = false,
 }: {
   product: PublicProduct;
   line: CartLine | undefined;
@@ -38,6 +39,8 @@ export function ProductModal({
   onOpenProduct?: (id: string) => void;
   productionDays?: string;
   shareUrl?: string;
+  // Há promoção geral ou desconto por valor do pedido valendo.
+  promoActive?: boolean;
 }) {
   const [photo, setPhoto] = useState(0);
   const [qty, setQty] = useState(line?.qty ?? 1);
@@ -267,6 +270,9 @@ export function ProductModal({
             >
               <PriceTag product={product} badge />
             </p>
+            {product.promo_excluded && promoActive && (
+              <p className="text-xs text-[var(--muted)]">Este produto não participa das promoções da loja.</p>
+            )}
           </div>
 
           <dl className="flex flex-wrap gap-x-6 gap-y-2 text-sm">

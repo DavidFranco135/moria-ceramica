@@ -109,6 +109,8 @@ export default function ProdutosPage() {
   const [formModelUrl, setFormModelUrl] = useState("");
   // Desconto (% OFF) deste produto na loja.
   const [formDiscount, setFormDiscount] = useState("");
+  // Fora das promoções (Black Friday / desconto por valor do pedido).
+  const [formPromoExcluded, setFormPromoExcluded] = useState(false);
   const [formVisible, setFormVisible] = useState(true);
   const [search, setSearch] = useState("");
   const [visibilityFilter, setVisibilityFilter] = useState<"all" | "visible" | "hidden">("all");
@@ -435,6 +437,7 @@ export default function ProdutosPage() {
     setFormPriceOnRequest(false);
     setFormModelUrl("");
     setFormDiscount("");
+    setFormPromoExcluded(false);
     setFormVisible(true);
     setMode("completo");
     setEditingId(null);
@@ -504,6 +507,7 @@ export default function ProdutosPage() {
     setFormPriceOnRequest(storeSettings?.price_on_request_product_ids?.includes(product.id) ?? false);
     setFormModelUrl(storeSettings?.model_urls?.[product.id] ?? "");
     setFormDiscount(String(storeSettings?.product_discounts?.[product.id] ?? ""));
+    setFormPromoExcluded(storeSettings?.promo_excluded_ids?.includes(product.id) ?? false);
     setFormVisible(!(storeSettings?.hidden_product_ids ?? []).includes(product.id));
     setMode(product.manual_price != null ? "simples" : "completo");
     setShowForm(true);
@@ -573,6 +577,12 @@ export default function ProdutosPage() {
           if (discount > 0) nextDiscounts[productId] = discount;
           else delete nextDiscounts[productId];
           patch.product_discounts = nextDiscounts;
+        }
+        const excludedNow = storeSettings.promo_excluded_ids ?? [];
+        if (excludedNow.includes(productId) !== formPromoExcluded) {
+          patch.promo_excluded_ids = formPromoExcluded
+            ? [...excludedNow, productId]
+            : excludedNow.filter((id) => id !== productId);
         }
         const hiddenNow = storeSettings.hidden_product_ids ?? [];
         if (hiddenNow.includes(productId) === formVisible) {
@@ -1070,6 +1080,25 @@ export default function ProdutosPage() {
                   placeholder="Ex.: 15"
                   className="w-32 rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm placeholder:text-neutral-600"
                 />
+              </label>
+            )}
+
+            {storeSettings && (
+              <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-neutral-800 px-3 py-2.5">
+                <input
+                  type="checkbox"
+                  checked={formPromoExcluded}
+                  onChange={(e) => setFormPromoExcluded(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 accent-blue-600"
+                />
+                <span>
+                  <span className="block text-sm">Fora das promoções</span>
+                  <span className="block text-xs text-neutral-500">
+                    Este produto não recebe a promoção geral (ex.: Black Friday 10%) nem o desconto por valor do
+                    pedido (ex.: 20% a partir de R$ 500), e não conta para chegar a esse valor. O desconto próprio
+                    acima, se houver, continua valendo.
+                  </span>
+                </span>
               </label>
             )}
 

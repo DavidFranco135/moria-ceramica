@@ -388,3 +388,29 @@ def test_store_discounts_product_promo_and_tiers(client: TestClient):
 
     bad = client.put(url, json={"product_discounts": {caneca["id"]: 95}}, headers=headers)
     assert bad.status_code == 422
+
+
+def test_store_products_excluded_from_promotions(client: TestClient):
+    org_id, slug, headers = _setup(client)
+    vaso = _product(client, org_id, headers, name="Vaso", manual_price=200)
+    _product(client, org_id, headers, name="Prato", manual_price=50)
+    url = f"/api/v1/organizations/{org_id}/store"
+    payload = {
+        "promo_percent": 10,
+        "promo_excluded_ids": [vaso["id"]],
+        "cart_tiers": [{"min_total": 500, "percent": 20}],
+    }
+    assert client.put(url, json=payload, headers=headers).status_code == 200
+    store_use_cases._public_cache.clear()
+    public = client.get(f"/api/v1/public/stores/{slug}").json()
+    by_name = {p["name"]: p for p in public["products"]}
+    assert by_name["Vaso"]["discount_percent"] == 0
+    assert by_name["Vaso"]["promo_excluded"] is True
+    assert by_name["Prato"]["discount_percent"] == 10
+
+    # O desconto próprio do produto continua valendo mesmo fora das promoções.
+    payload["product_discounts"] = {vaso["id"]: 5}
+    client.put(url, json=payload, headers=headers)
+    store_use_cases._public_cache.clear()
+    public = client.get(f"/api/v1/public/stores/{slug}").json()
+    assert {p["name"]: p for p in public["products"]}["Vaso"]["discount_percent"] == 5

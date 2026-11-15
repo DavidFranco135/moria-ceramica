@@ -131,6 +131,7 @@ def get_public_store(db: Session, *, slug: str) -> PublicStoreResponse:
         for product_id in category.product_ids:
             categories_of.setdefault(product_id, []).append(category.id)
     promo = _active_promo_percent(settings)
+    excluded = set(settings.promo_excluded_ids)
     products: list[PublicProduct] = []
     for product in visible_products:
         if product.manual_price is not None:
@@ -161,7 +162,11 @@ def get_public_store(db: Session, *, slug: str) -> PublicStoreResponse:
                 model_url=settings.model_urls.get(str(product.id), ""),
                 discount_percent=0.0
                 if hide_price
-                else max(promo, settings.product_discounts.get(str(product.id), 0.0)),
+                else max(
+                    0.0 if str(product.id) in excluded else promo,
+                    settings.product_discounts.get(str(product.id), 0.0),
+                ),
+                promo_excluded=str(product.id) in excluded,
             )
         )
 

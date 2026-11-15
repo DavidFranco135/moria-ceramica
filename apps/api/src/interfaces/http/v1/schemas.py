@@ -844,6 +844,9 @@ class StoreSettings(BaseModel):
     cart_tiers: list[CartTier] = Field(default_factory=list, max_length=5)
     # False: vale só o maior desconto (do produto/promoção OU da faixa do pedido).
     discounts_stack: bool = False
+    # Produtos fora das promoções (geral e por valor do pedido). O desconto
+    # próprio do produto, se houver, continua valendo.
+    promo_excluded_ids: list[str] = Field(default_factory=list)
 
     @field_validator("product_discounts")
     @classmethod
@@ -901,6 +904,8 @@ class PublicProduct(BaseModel):
     # Desconto em vigor no produto (% OFF): o maior entre o do produto e o da
     # promoção geral ativa. `price` continua sendo o preço cheio.
     discount_percent: float = 0
+    # Fora das promoções gerais e do desconto por valor do pedido.
+    promo_excluded: bool = False
 
 
 class StorePing(BaseModel):

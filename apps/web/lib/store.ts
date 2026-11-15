@@ -70,6 +70,7 @@ export type StoreSettings = {
   promo_end?: string;
   cart_tiers?: { min_total: number; percent: number }[];
   discounts_stack?: boolean;
+  promo_excluded_ids?: string[];
 };
 
 export type StoreAdminResponse = { slug: string; name: string; settings: StoreSettings };
@@ -91,6 +92,8 @@ export type PublicProduct = {
   model_url?: string;
   // Desconto em vigor (% OFF). `price` é o preço cheio.
   discount_percent?: number;
+  // Fora das promoções (geral e por valor do pedido).
+  promo_excluded?: boolean;
 };
 
 export type PublicStore = {
@@ -105,6 +108,7 @@ export type PublicStore = {
     | "categories"
     | "model_urls"
     | "product_discounts"
+    | "promo_excluded_ids"
     | "promo_start"
   > & {
     categories: PublicCategory[];
@@ -313,28 +317,47 @@ function tierFor(tiers: CartTier[], amount: number): CartTier | null {
 
 // Totais do pedido. Sem acumular (padrão), vale o MAIOR desconto: o dos
 // produtos/promoção OU o da faixa do pedido (sobre o preço cheio). Acumulando,
-// a faixa é aplicada por cima do valor já com desconto.
+// a faixa é aplicada por cima do valor já com desconto. Produtos "fora das
+// promoções" não entram na faixa (nem para chegar ao valor mínimo) e mantêm
+// só o desconto próprio, se tiverem.
 export function computeTotals(lines: OrderLine[], rules?: DiscountRules): OrderTotals {
   const tiers = rules?.tiers ?? [];
-  const full = round2(lines.reduce((sum, l) => sum + (l.product.price_on_request ? 0 : l.product.price * l.qty), 0));
-  const items = round2(lines.reduce((sum, l) => sum + (l.product.price_on_request ? 0 : unitPrice(l.product) * l.qty), 0));
-  const base = rules?.stack ? items : full;
+  const priced = lines.filter((l) => !l.product.price_on_request);
+  const sum = (ls: OrderLine[], f: (l: OrderLine) => number) => round2(ls.reduce((acc, l) => acc + f(l), 0));
+  const eligible = priced.filter((l) => !l.product.promo_excluded);
+  const excluded = priced.filter((l) => l.product.promo_excluded);
+  const full = sum(priced, (l) => l.product.price * l.qty);
+  const items = sum(priced, (l) => unitPrice(l.product) * l.qty);
+  const fullElig = sum(eligible, (l) => l.product.price * l.qty);
+  const itemsElig = sum(eligible, (l) => unitPrice(l.product) * l.qty);
+  const itemsExcl = sum(excluded, (l) => unitPrice(l.product) * l.qty);
+  const fullExcl = sum(excluded, (l) => l.product.price * l.qty);
+  const base = rules?.stack ? itemsElig : fullElig;
   const tier = tierFor(tiers, base);
   const upcoming = [...tiers].sort((a, b) => a.min_total - b.min_total).find((t) => t.min_total > base);
   const next = upcoming ? { tier: upcoming, missing: round2(upcoming.min_total - base) } : null;
 
+  const noTier = { itemSavings: round2(full - items), tier: null, tierSavings: 0, total: items, savings: round2(full - items) };
   let result: Omit<OrderTotals, "full" | "items" | "next">;
   if (!tier) {
-    result = { itemSavings: round2(full - items), tier: null, tierSavings: 0, total: items, savings: round2(full - items) };
+    result = noTier;
   } else if (rules?.stack) {
-    const total = round2(items * (1 - tier.percent / 100));
-    result = { itemSavings: round2(full - items), tier, tierSavings: round2(items - total), total, savings: round2(full - total) };
+    const discounted = round2(itemsElig * (1 - tier.percent / 100));
+    const total = round2(itemsExcl + discounted);
+    result = { itemSavings: round2(full - items), tier, tierSavings: round2(itemsElig - discounted), total, savings: round2(full - total) };
   } else {
-    const withTier = round2(full * (1 - tier.percent / 100));
+    const discounted = round2(fullElig * (1 - tier.percent / 100));
+    const withTier = round2(itemsExcl + discounted);
     result =
       withTier < items
-        ? { itemSavings: 0, tier, tierSavings: round2(full - withTier), total: withTier, savings: round2(full - withTier) }
-        : { itemSavings: round2(full - items), tier: null, tierSavings: 0, total: items, savings: round2(full - items) };
+        ? {
+            itemSavings: round2(fullExcl - itemsExcl),
+            tier,
+            tierSavings: round2(fullElig - discounted),
+            total: withTier,
+            savings: round2(full - withTier),
+          }
+        : noTier;
   }
   return { full, items, next, ...result };
 }
@@ -348,7 +371,7 @@ export function buildOrderMessage(
   const totals = computeTotals(lines, rules);
   // Sem acumular e com a faixa valendo, os itens vão a preço cheio (a faixa
   // substitui os descontos dos produtos).
-  const itemDiscounts = totals.tier === null || !!rules?.stack;
+  const itemDiscounts = (l: OrderLine) => totals.tier === null || !!rules?.stack || !!l.product.promo_excluded;
   const anyOnRequest = lines.some((l) => l.product.price_on_request);
   const items = lines
     .map((l, i) => {
@@ -356,7 +379,7 @@ export function buildOrderMessage(
       const note = l.note ? `\n   Obs: ${l.note}` : "";
       let price: string;
       if (l.product.price_on_request) price = `${l.qty} × preço a consultar`;
-      else if (itemDiscounts && hasDiscount(l.product))
+      else if (itemDiscounts(l) && hasDiscount(l.product))
         price = `${l.qty} × ~${brl(l.product.price)}~ ${brl(unitPrice(l.product))} (${discountBadge(l.product)}) = ${brl(
           unitPrice(l.product) * l.qty
         )}`;

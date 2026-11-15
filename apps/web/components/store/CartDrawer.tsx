@@ -185,7 +185,7 @@ export function CartDrawer({
                           </button>
                         </div>
                         <p className="text-right text-sm font-semibold">
-                          {tierReplacesItems && !product.price_on_request ? (
+                          {tierReplacesItems && !product.price_on_request && !product.promo_excluded ? (
                             formatBRL(product.price * qty)
                           ) : (
                             <>

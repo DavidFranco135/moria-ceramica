@@ -1351,6 +1351,7 @@ export function Storefront({ slug }: { slug: string }) {
           onOpenProduct={setOpenProductId}
           productionDays={settings.production_days}
           shareUrl={productLink(openProduct.id)}
+          promoActive={(settings.promo_percent ?? 0) > 0 || (settings.cart_tiers ?? []).length > 0}
           line={lines.find((l) => l.id === openProduct.id)}
           storeName={storeName}
           whatsapp={settings.whatsapp}
