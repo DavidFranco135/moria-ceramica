@@ -323,3 +323,31 @@ def test_store_subcategories_are_public_and_limited_to_two_levels(client: TestCl
     public = client.get(f"/api/v1/public/stores/{org['slug']}").json()["settings"]["categories"]
     # A principal aparece mesmo sem produto próprio, porque a subcategoria tem.
     assert {c["id"]: c["parent_id"] for c in public} == {"dia": "", "xic": "dia"}
+
+
+def test_store_badges_lead_time_dark_and_3d_models(client: TestClient):
+    org_id, slug, headers = _setup(client)
+    product = _product(client, org_id, headers, name="Caneca", manual_price=40)
+    url = f"/api/v1/organizations/{org_id}/store"
+
+    default = client.get(f"/api/v1/public/stores/{slug}").json()
+    assert len(default["settings"]["trust_badges"]) == 3
+    assert default["settings"]["auto_dark"] is False
+
+    payload = {
+        "auto_dark": True,
+        "trust_badges": [" Feito à mão ", ""],
+        "production_days": "7 a 10 dias úteis",
+        "model_urls": {product["id"]: "https://exemplo.com/caneca.glb", "outro": " "},
+    }
+    ok = client.put(url, json=payload, headers=headers)
+    assert ok.status_code == 200, ok.text
+    store_use_cases._public_cache.clear()
+    public = client.get(f"/api/v1/public/stores/{slug}").json()
+    assert public["settings"]["auto_dark"] is True
+    assert public["settings"]["trust_badges"] == ["Feito à mão"]
+    assert public["settings"]["production_days"] == "7 a 10 dias úteis"
+    assert public["products"][0]["model_url"] == "https://exemplo.com/caneca.glb"
+
+    bad = client.put(url, json={"model_urls": {product["id"]: "javascript:alert(1)"}}, headers=headers)
+    assert bad.status_code == 422

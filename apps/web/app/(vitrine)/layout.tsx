@@ -13,7 +13,7 @@ const display = Fraunces({
 export const metadata: Metadata = {
   title: "Moriá Cerâmica",
   description: "Cerâmica artesanal, utilitária, feita à mão. Cada peça moldada com propósito.",
-  manifest: undefined,
+  manifest: "/manifest-loja.json",
   openGraph: {
     title: "Moriá Cerâmica",
     description: "Cerâmica artesanal, utilitária, feita à mão. Cada peça moldada com propósito.",

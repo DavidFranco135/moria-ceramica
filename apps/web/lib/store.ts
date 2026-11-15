@@ -54,6 +54,14 @@ export type StoreSettings = {
   product_order: string[];
   price_on_request_product_ids: string[];
   categories: StoreCategory[];
+  // Vitrine segue o modo escuro do celular/computador do cliente.
+  auto_dark?: boolean;
+  // Selos de confiança (vitrine, pedido e rodapé).
+  trust_badges?: string[];
+  // Prazo de produção mostrado na vitrine (ex.: "7 a 10 dias úteis").
+  production_days?: string;
+  // Modelo 3D (.glb) de cada produto: {id do produto: link https}.
+  model_urls?: Record<string, string>;
 };
 
 export type StoreAdminResponse = { slug: string; name: string; settings: StoreSettings };
@@ -71,6 +79,8 @@ export type PublicProduct = {
   featured: boolean;
   category_ids: string[];
   price_on_request: boolean;
+  // Link do modelo 3D (.glb), quando houver.
+  model_url?: string;
 };
 
 export type PublicStore = {
@@ -83,6 +93,7 @@ export type PublicStore = {
     | "product_order"
     | "price_on_request_product_ids"
     | "categories"
+    | "model_urls"
   > & {
     categories: PublicCategory[];
     // Destaques visíveis, já na ordem escolhida (servidores antigos não mandam).
@@ -150,18 +161,29 @@ export const THEMES = {
   light: { bg: "#faf8f5", surface: "#ffffff", ink: "#1c1917", muted: "#78716c", line: "#e7e5e4" },
   dark: { bg: "#0b0b10", surface: "#15151c", ink: "#f5f5f4", muted: "#a1a1aa", line: "#2a2a33" },
   moria: { bg: "#ebd7bb", surface: "#f4e5d0", ink: "#4b2f1c", muted: "#754d40", line: "#d9bf9b" },
+  // Versão noturna do tema Moriá (modo escuro automático): café escuro e creme.
+  "moria-noite": { bg: "#1f140c", surface: "#2c1d12", ink: "#f2e1cb", muted: "#cdb08c", line: "#43301f" },
 } as const;
+
+// Tema efetivamente desenhado (inclui a variante noturna, que não é escolhida
+// no painel: entra sozinha com o modo escuro automático).
+export type RenderTheme = StoreTheme | "moria-noite";
+
+// Modo escuro automático: qual tema usar quando o aparelho está no escuro.
+export function darkVariant(theme: StoreTheme): RenderTheme {
+  return theme === "moria" ? "moria-noite" : "dark";
+}
 
 function rgba(hex: string, alpha: number): string {
   const n = parseInt(hex.replace("#", ""), 16);
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
 }
 
-export function themeVars(accent: string, theme: StoreTheme): React.CSSProperties {
+export function themeVars(accent: string, theme: RenderTheme): React.CSSProperties {
   // O tema da marca usa sempre o café da paleta Moriá.
-  const a = theme === "moria" ? ACCENTS.cafe : (ACCENTS[accent] ?? ACCENTS.cafe);
+  const a = theme === "moria" || theme === "moria-noite" ? ACCENTS.cafe : (ACCENTS[accent] ?? ACCENTS.cafe);
   const t = THEMES[theme] ?? THEMES.light;
-  const isDark = theme === "dark";
+  const isDark = theme === "dark" || theme === "moria-noite";
   const color = isDark && a.dark ? a.dark.color : a.color;
   const ink = isDark && a.dark ? a.dark.ink : theme === "moria" ? "#f2e1cb" : "#fffaf0";
   return {
@@ -172,16 +194,17 @@ export function themeVars(accent: string, theme: StoreTheme): React.CSSPropertie
     "--line": t.line,
     "--accent": color,
     "--accent-ink": ink,
+    "--accent-text": color,
     "--bg-glass": rgba(t.bg, 0.82),
     "--surface-glass": rgba(t.surface, 0.82),
     "--accent-ring": rgba(color, 0.22),
     "--accent-soft":
-      theme === "dark" ? "rgba(255,255,255,0.06)" : a.soft,
+      isDark ? "rgba(255,255,255,0.06)" : a.soft,
     // Rodapé: no tema Moriá é café com letras creme; nos outros, segue a página.
-    "--footer-bg": theme === "moria" ? "#4c2d18" : t.surface,
-    "--footer-ink": theme === "moria" ? "#f2e1cb" : t.ink,
-    "--footer-muted": theme === "moria" ? "#e0c9a6" : t.muted,
-    "--footer-line": theme === "moria" ? "rgba(242,225,203,0.18)" : t.line,
+    "--footer-bg": theme === "moria" ? "#4c2d18" : theme === "moria-noite" ? "#140c06" : t.surface,
+    "--footer-ink": theme === "moria" || theme === "moria-noite" ? "#f2e1cb" : t.ink,
+    "--footer-muted": theme === "moria" || theme === "moria-noite" ? "#e0c9a6" : t.muted,
+    "--footer-line": theme === "moria" || theme === "moria-noite" ? "rgba(242,225,203,0.18)" : t.line,
   } as React.CSSProperties;
 }
 
@@ -257,4 +280,29 @@ export function refreshPublicStoreCache(slug: string | undefined): void {
   setTimeout(() => {
     fetch(`/loja-data?s=${encodeURIComponent(slug)}&refresh=1`).catch(() => {});
   }, 1000);
+}
+
+// Prazo de produção: "7 a 10 dias úteis" → data em que fica pronto pedindo
+// hoje (usa o maior número; "úteis" pula sábado e domingo). Sem número, null.
+export function productionReadyDate(text: string | undefined, from = new Date()): Date | null {
+  const nums = (text ?? "").match(/\d+/g);
+  if (!nums) return null;
+  const days = Math.max(...nums.map(Number));
+  if (!Number.isFinite(days) || days <= 0 || days > 365) return null;
+  const businessOnly = /[uú]te(is|l)/i.test(text ?? "");
+  const date = new Date(from);
+  let left = days;
+  while (left > 0) {
+    date.setDate(date.getDate() + 1);
+    const wd = date.getDay();
+    if (businessOnly && (wd === 0 || wd === 6)) continue;
+    left -= 1;
+  }
+  return date;
+}
+
+export function formatReadyDate(date: Date): string {
+  return date
+    .toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" })
+    .replace(".", "");
 }

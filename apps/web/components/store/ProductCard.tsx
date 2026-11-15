@@ -4,6 +4,7 @@ import type { PublicProduct } from "@/lib/store";
 import { priceLabel } from "@/lib/store";
 import { IconMinus, IconPlus } from "./ui";
 import { IMG_WIDTH, imgSrc } from "@/lib/img";
+import { IconCube } from "./extras";
 import { flyToCart } from "./fx";
 
 export function ProductCard({
@@ -28,7 +29,7 @@ export function ProductCard({
       <button
         onClick={onOpen}
         aria-label={`Ver ${product.name}`}
-        className="relative block aspect-[4/5] w-full overflow-hidden bg-[var(--accent-soft)] text-left"
+        className="fx-img-skel relative block aspect-[4/5] w-full overflow-hidden bg-[var(--accent-soft)] text-left"
       >
         {cover ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -91,6 +92,12 @@ export function ProductCard({
               Esgotado
             </span>
           )}
+          {product.model_url && (
+            <span className="flex items-center gap-1 rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white backdrop-blur">
+              <IconCube className="h-3 w-3" />
+              3D
+            </span>
+          )}
           {product.available && product.stock_quantity != null && product.stock_quantity <= 3 && (
             <span className="rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-semibold text-neutral-800 backdrop-blur">
               Últimas {product.stock_quantity}
@@ -147,7 +154,7 @@ export function ProductCard({
                 flyToCart(e.currentTarget.closest("article")?.querySelector("img[data-fly-source]") ?? null);
                 onAdd();
               }}
-              className="fx-btn inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--accent-ink)] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md active:translate-y-0"
+              className="fx-btn fx-gleam inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--accent-ink)] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md active:translate-y-0"
             >
               <IconPlus className="h-4 w-4" />
               Adicionar
