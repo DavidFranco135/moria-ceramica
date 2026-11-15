@@ -1,4 +1,9 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// API publicada no Firebase (projeto moria-ceramica). A variável
+// NEXT_PUBLIC_API_URL, se definida, tem prioridade.
+const PRODUCTION_API_URL = "https://us-central1-moria-ceramica.cloudfunctions.net/api";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === "production" ? PRODUCTION_API_URL : "http://localhost:8000");
 
 export class ApiError extends Error {
   status: number;

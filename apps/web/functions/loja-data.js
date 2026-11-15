@@ -7,8 +7,8 @@
 // FRESH_SECONDS, a Cloudflare busca a nova em segundo plano para o próximo
 // visitante ("stale-while-revalidate"). Alterações feitas em Minha Loja
 // aparecem em ~30 s, como antes.
-// Endereço da API: definido na variável NEXT_PUBLIC_API_URL do Cloudflare Pages.
-const DEFAULT_API = "";
+// API publicada no Firebase; a variável NEXT_PUBLIC_API_URL tem prioridade.
+const DEFAULT_API = "https://us-central1-moria-ceramica.cloudfunctions.net/api";
 const FRESH_SECONDS = 30;
 const KEEP_SECONDS = 7 * 24 * 3600; // por quanto tempo uma cópia antiga ainda serve
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,80}$/i;
