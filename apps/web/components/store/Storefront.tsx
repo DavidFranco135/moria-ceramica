@@ -5,7 +5,7 @@ import Link from "next/link";
 import { apiFetch, ApiError } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/format";
 import type { CartLine, OrderLine, PublicProduct, PublicStore, StoreSlide } from "@/lib/store";
-import { BRAND_LOGO, darkVariant, formatWhatsappDisplay, logoForTheme, instagramEmbedUrl, priceLabel, themeVars, whatsappLink } from "@/lib/store";
+import { darkVariant, isBrandLogo, formatWhatsappDisplay, logoForTheme, instagramEmbedUrl, priceLabel, themeVars, whatsappLink } from "@/lib/store";
 import { focusStyle } from "@/lib/focus";
 import { matchesSearch } from "@/lib/search";
 import { trackStoreEvent, useVisitTracker } from "@/lib/visits";
@@ -623,7 +623,7 @@ export function Storefront({ slug }: { slug: string }) {
               </span>
             )}
             {/* Com logo, o nome escrito só aparece do tablet para cima (a logo já traz o nome). */}
-            <span className={`min-w-0 ${settings.logo_url === BRAND_LOGO ? "hidden" : settings.logo_url ? "hidden sm:block" : ""}`}>
+            <span className={`min-w-0 ${isBrandLogo(settings.logo_url) ? "hidden" : settings.logo_url ? "hidden sm:block" : ""}`}>
               <span className="block truncate font-[family-name:var(--font-display)] text-lg font-semibold leading-tight">
                 {storeName}
               </span>

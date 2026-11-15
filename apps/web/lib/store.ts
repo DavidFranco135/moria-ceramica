@@ -113,8 +113,11 @@ export const STORE_SLUG = process.env.NEXT_PUBLIC_STORE_SLUG || "moria-ceramica"
 // "claro" (creme) é usada no modo escuro.
 export const BRAND_LOGO = "/brand/moria-logo-wide.png";
 export const BRAND_LOGO_LIGHT = "/brand/moria-logo-wide-claro.png";
+export function isBrandLogo(url: string): boolean {
+  return url.split("?")[0] === BRAND_LOGO;
+}
 export function logoForTheme(url: string, dark: boolean): string {
-  return dark && url === BRAND_LOGO ? BRAND_LOGO_LIGHT : url;
+  return dark && isBrandLogo(url) ? BRAND_LOGO_LIGHT : url;
 }
 
 export const DEFAULT_WHATSAPP = "5521984986236";
