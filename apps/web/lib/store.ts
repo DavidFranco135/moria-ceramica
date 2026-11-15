@@ -1,3 +1,4 @@
+import { IMG_WIDTH, imgSrc } from "@/lib/img";
 // x / y: enquadramento (0-100). Sem valores = foto inteira, sem corte.
 export type StoreSlide = { url: string; title: string; subtitle: string; x?: number | null; y?: number | null };
 export type StoreHighlight = { title: string; text: string };
@@ -71,6 +72,11 @@ export type StoreSettings = {
   cart_tiers?: { min_total: number; percent: number }[];
   discounts_stack?: boolean;
   promo_excluded_ids?: string[];
+  // Fundo da loja (liso, tijolinhos ou foto), intensidade em % e cabeçalho.
+  background_style?: "none" | "tijolos" | "foto";
+  background_url?: string;
+  background_opacity?: number;
+  background_header?: boolean;
 };
 
 export type StoreAdminResponse = { slug: string; name: string; settings: StoreSettings };
@@ -129,6 +135,45 @@ export const STORE_SLUG = process.env.NEXT_PUBLIC_STORE_SLUG || "moria-ceramica"
 // "claro" (creme) é usada no modo escuro.
 export const BRAND_LOGO = "/brand/moria-logo-wide.png";
 export const BRAND_LOGO_LIGHT = "/brand/moria-logo-wide-claro.png";
+// Fundo da loja: camada fixa e esmaecida atrás do conteúdo (+ cabeçalho).
+export const BRICK_TEXTURE = "/brand/textura-tijolos-cor.webp";
+export function storeBackground(s: {
+  background_style?: string;
+  background_url?: string;
+  background_opacity?: number;
+  background_header?: boolean;
+}): { layer: React.CSSProperties; header?: React.CSSProperties } | null {
+  const style = s.background_style ?? "none";
+  const raw = style === "tijolos" ? BRICK_TEXTURE : style === "foto" ? (s.background_url ?? "").trim() : "";
+  // Fotos do ImgBB passam pela versão reduzida (mais leve).
+  const url = raw && style === "foto" ? imgSrc(raw, IMG_WIDTH.hero) : raw;
+  if (!url) return null;
+  const pct = Math.max(3, Math.min(60, s.background_opacity ?? 18));
+  const tiled = style === "tijolos";
+  const image = `url("${url.replace(/"/g, "%22")}")`;
+  const size = tiled ? "1000px 420px" : "cover";
+  const layer: React.CSSProperties = {
+    // Mais apagado no centro (onde ficam os textos), mais visível nas bordas.
+    backgroundImage: `radial-gradient(ellipse 70% 60% at 50% 45%, color-mix(in srgb, var(--bg) 45%, transparent), transparent 80%), ${image}`,
+    backgroundSize: `auto, ${size}`,
+    backgroundRepeat: tiled ? "no-repeat, repeat" : "no-repeat, no-repeat",
+    backgroundPosition: "center, center",
+    opacity: pct / 100,
+  };
+  if (!s.background_header) return { layer };
+  // Cabeçalho: a mesma imagem, mais forte, sob um véu creme para o menu ler bem.
+  const veil = Math.max(35, Math.min(92, Math.round(100 - pct * 1.6)));
+  const v = `color-mix(in srgb, var(--surface) ${veil}%, transparent)`;
+  return {
+    layer,
+    header: {
+      backgroundImage: `linear-gradient(${v}, ${v}), ${image}`,
+      backgroundSize: `auto, ${tiled ? "760px 319px" : "cover"}`,
+      backgroundPosition: "center, center",
+    },
+  };
+}
+
 export function isBrandLogo(url: string): boolean {
   return url.split("?")[0] === BRAND_LOGO;
 }

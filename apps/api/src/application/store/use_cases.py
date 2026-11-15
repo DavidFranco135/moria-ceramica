@@ -216,6 +216,10 @@ def get_public_store(db: Session, *, slug: str) -> PublicStoreResponse:
             promo_end=settings.promo_end if promo else "",
             cart_tiers=sorted(settings.cart_tiers, key=lambda t: t.min_total),
             discounts_stack=settings.discounts_stack,
+            background_style=settings.background_style,
+            background_url=settings.background_url,
+            background_opacity=settings.background_opacity,
+            background_header=settings.background_header,
         ),
         products=products,
     )

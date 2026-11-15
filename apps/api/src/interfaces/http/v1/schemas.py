@@ -847,6 +847,12 @@ class StoreSettings(BaseModel):
     # Produtos fora das promoções (geral e por valor do pedido). O desconto
     # próprio do produto, se houver, continua valendo.
     promo_excluded_ids: list[str] = Field(default_factory=list)
+    # Fundo da loja: "none" (liso), "tijolos" (parede rústica) ou "foto" (uma
+    # foto enviada). Intensidade em % (quanto aparece) e se vai no cabeçalho.
+    background_style: str = Field(default="none", pattern="^(none|tijolos|foto)$")
+    background_url: str = Field(default="", max_length=2000)
+    background_opacity: int = Field(default=18, ge=3, le=60)
+    background_header: bool = False
 
     @field_validator("product_discounts")
     @classmethod
@@ -992,6 +998,10 @@ class PublicStoreSettings(BaseModel):
     promo_end: str = ""
     cart_tiers: list[CartTier] = Field(default_factory=list)
     discounts_stack: bool = False
+    background_style: str = "none"
+    background_url: str = ""
+    background_opacity: int = 18
+    background_header: bool = False
 
 
 class PublicStoreResponse(BaseModel):

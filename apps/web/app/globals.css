@@ -542,8 +542,8 @@
   to { transform: rotate(360deg); }
 }
 
-/* Textura do fundo Moriá: parede de tijolos rústica bem esmaecida, grão leve
-   de argila (ruído) e um calor suave no alto da página. */
+/* Textura do fundo Moriá: grão leve de argila (ruído) e um calor suave no
+   alto da página. */
 .store-fx.fx-texture {
   isolation: isolate;
 }
@@ -558,11 +558,7 @@
   pointer-events: none;
   background-image:
     radial-gradient(1100px 500px at 15% -10%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.36 0 0 0 0 0.22 0 0 0 0 0.12 0 0 0 0.11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
-    /* Parede de tijolos rústica bem esmaecida, mais apagada no centro. */
-    radial-gradient(ellipse 70% 60% at 50% 45%, color-mix(in srgb, var(--bg) 45%, transparent), transparent 80%),
-    url("/brand/textura-tijolos.webp");
-  background-size: auto, 220px 220px, auto, 1000px 420px;
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.36 0 0 0 0 0.22 0 0 0 0 0.12 0 0 0 0.11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   transform: translateZ(0);
   will-change: transform;
 }
@@ -590,14 +586,4 @@
   .store-fx.fx-ready main img {
     transition: opacity 0.5s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
   }
-}
-
-/* Cabeçalho com a parede de tijolos, menos esmaecida que o fundo da página:
-   véu creme por cima (72%) para o menu e a logo continuarem legíveis. */
-.store-fx .fx-header {
-  background-image:
-    linear-gradient(color-mix(in srgb, var(--surface) 72%, transparent), color-mix(in srgb, var(--surface) 72%, transparent)),
-    url("/brand/textura-tijolos-cor.webp");
-  background-size: auto, 760px 319px;
-  background-position: center, center top;
 }

@@ -414,3 +414,22 @@ def test_store_products_excluded_from_promotions(client: TestClient):
     store_use_cases._public_cache.clear()
     public = client.get(f"/api/v1/public/stores/{slug}").json()
     assert {p["name"]: p for p in public["products"]}["Vaso"]["discount_percent"] == 5
+
+
+def test_store_background_settings(client: TestClient):
+    org_id, slug, headers = _setup(client)
+    url = f"/api/v1/organizations/{org_id}/store"
+    public = client.get(f"/api/v1/public/stores/{slug}").json()
+    assert public["settings"]["background_style"] == "none"
+
+    payload = {
+        "background_style": "foto",
+        "background_url": "https://i.ibb.co/x/parede.jpg",
+        "background_opacity": 25,
+        "background_header": True,
+    }
+    assert client.put(url, json=payload, headers=headers).status_code == 200
+    store_use_cases._public_cache.clear()
+    s = client.get(f"/api/v1/public/stores/{slug}").json()["settings"]
+    assert (s["background_style"], s["background_opacity"], s["background_header"]) == ("foto", 25, True)
+    assert client.put(url, json={"background_style": "neon"}, headers=headers).status_code == 422

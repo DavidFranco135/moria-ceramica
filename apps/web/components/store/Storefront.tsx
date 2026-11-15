@@ -5,7 +5,7 @@ import Link from "next/link";
 import { apiFetch, ApiError } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/format";
 import type { CartLine, OrderLine, PublicProduct, PublicStore, StoreSlide } from "@/lib/store";
-import { computeTotals, darkVariant, formatPercent, isBrandLogo, promoNotices, unitPrice, formatWhatsappDisplay, logoForTheme, instagramEmbedUrl, priceLabel, themeVars, whatsappLink } from "@/lib/store";
+import { computeTotals, darkVariant, storeBackground, formatPercent, isBrandLogo, promoNotices, unitPrice, formatWhatsappDisplay, logoForTheme, instagramEmbedUrl, priceLabel, themeVars, whatsappLink } from "@/lib/store";
 import { focusStyle } from "@/lib/focus";
 import { matchesSearch } from "@/lib/search";
 import { trackStoreEvent, useVisitTracker } from "@/lib/visits";
@@ -481,6 +481,7 @@ export function Storefront({ slug }: { slug: string }) {
   // Modo escuro automático: no celular/computador escuro, usa a versão noturna.
   const effectiveTheme =
     settings?.auto_dark && prefersDark ? darkVariant(settings.theme) : (settings?.theme ?? "moria");
+  const background = settings ? storeBackground(settings) : null;
   const vars = themeVars(settings?.accent ?? "cafe", effectiveTheme);
 
   if (!store || !settings) {
@@ -634,7 +635,12 @@ export function Storefront({ slug }: { slug: string }) {
       ref={rootRef}
       className="store-fx fx-texture min-h-screen overflow-x-clip bg-[var(--bg)] font-[family-name:var(--font-sans)] text-[var(--ink)] antialiased selection:bg-[var(--accent)] selection:text-[var(--accent-ink)]"
     >
-      <header className="fx-header sticky top-0 z-50 border-b border-[var(--line)] bg-[var(--surface-glass)] backdrop-blur-xl">
+      {background && (
+        <div aria-hidden className="pointer-events-none fixed inset-0 -z-[2]" style={background.layer} />
+      )}
+      <header
+        style={background?.header}
+        className="fx-header sticky top-0 z-50 border-b border-[var(--line)] bg-[var(--surface-glass)] backdrop-blur-xl">
         <AnnouncementBar items={announcements} />
         <div className="fx-head-row mx-auto flex max-w-[1600px] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
           <MenuButton onClick={() => setMenuOpen(true)} />
