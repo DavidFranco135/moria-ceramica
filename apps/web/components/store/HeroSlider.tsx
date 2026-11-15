@@ -172,7 +172,7 @@ export function HeroSlider({
           >
             <button
               onClick={onCatalog}
-              className="fx-btn group/btn inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold sm:px-6 sm:py-3 text-[var(--accent-ink)] shadow-lg sm:bg-white sm:text-neutral-900 transition hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0"
+              className="fx-btn group/btn inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold sm:px-6 sm:py-3 text-[var(--accent-ink)] shadow-lg sm:bg-white sm:text-neutral-900 transition hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0"
             >
               Ver catálogo
               <IconArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
@@ -181,7 +181,7 @@ export function HeroSlider({
               href={whatsappHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] px-5 py-2.5 text-sm font-semibold sm:px-6 sm:py-3 text-[var(--ink)] transition hover:-translate-y-0.5 sm:border-white/40 sm:bg-black/25 sm:text-white sm:backdrop-blur-md sm:hover:bg-black/40"
+              className="inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-[var(--line)] px-4 py-2.5 text-sm font-semibold sm:px-6 sm:py-3 text-[var(--ink)] transition hover:-translate-y-0.5 sm:border-white/40 sm:bg-black/25 sm:text-white sm:backdrop-blur-md sm:hover:bg-black/40"
             >
               <IconWhatsapp className="h-4 w-4" />
               <span className="whitespace-nowrap sm:hidden">WhatsApp</span>
