@@ -39,6 +39,11 @@ def _set_refresh_cookie(response: Response, tokens: TokenPair) -> None:
 def register(
     payload: RegisterRequest, response: Response, db: Session = Depends(get_db)
 ) -> AuthResponse:
+    if not settings.registration_open:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="O cadastro de novas contas está fechado.",
+        )
     try:
         user, _organization, tokens = use_cases.register(
             db,

@@ -23,6 +23,11 @@ class Settings(BaseSettings):
 
     imgbb_api_key: str = ""
 
+    # Cadastro de novas contas (POST /auth/register). Fechado: a loja da Moriá
+    # tem uma única conta, criada antes; ninguém mais se cadastra pelo site.
+    # Para reabrir, defina REGISTRATION_OPEN=true no ambiente da API.
+    registration_open: bool = False
+
     # Vazio = usa o projeto Firebase onde a função está publicada.
     firestore_project_id: str = ""
     # "postgres" (default, today's unchanged production behavior) or

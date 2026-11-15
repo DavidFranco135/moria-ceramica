@@ -1,110 +1,17 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth-context";
-import { ApiError } from "@/lib/api-client";
 
+// O cadastro de novas contas está fechado: a Moriá Cerâmica tem uma única
+// conta, já criada. A API também recusa cadastros (REGISTRATION_OPEN).
 export default function RegisterPage() {
-  const { register } = useAuth();
-  const router = useRouter();
-  const [organizationName, setOrganizationName] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  async function handleSubmit(event: React.FormEvent) {
-    event.preventDefault();
-    setError(null);
-    setIsSubmitting(true);
-    try {
-      await register(organizationName, fullName, email, password);
-      router.replace("/dashboard");
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Falha ao cadastrar.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
   return (
-    <main className="flex min-h-screen items-center justify-center p-6">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
-        <div className="flex flex-col items-center gap-2 pb-2 text-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/moria-mark.png" alt="Moriá Cerâmica" className="h-20 w-20 rounded-2xl" />
-          <p className="text-sm font-semibold tracking-wide text-neutral-300">Moriá Cerâmica</p>
-        </div>
-        <h1 className="text-2xl font-semibold">Criar conta</h1>
-        {error && <p className="rounded bg-red-950 p-2 text-sm text-red-300">{error}</p>}
-        <div className="space-y-1">
-          <label className="block text-sm text-neutral-400" htmlFor="organizationName">
-            Nome da empresa/organização
-          </label>
-          <input
-            id="organizationName"
-            required
-            minLength={2}
-            value={organizationName}
-            onChange={(e) => setOrganizationName(e.target.value)}
-            className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
-          />
-        </div>
-        <div className="space-y-1">
-          <label className="block text-sm text-neutral-400" htmlFor="fullName">
-            Seu nome
-          </label>
-          <input
-            id="fullName"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
-          />
-        </div>
-        <div className="space-y-1">
-          <label className="block text-sm text-neutral-400" htmlFor="email">
-            E-mail
-          </label>
-          <input
-            id="email"
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
-          />
-        </div>
-        <div className="space-y-1">
-          <label className="block text-sm text-neutral-400" htmlFor="password">
-            Senha
-          </label>
-          <input
-            id="password"
-            type="password"
-            required
-            minLength={8}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded border border-neutral-700 bg-neutral-900 px-3 py-2"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full rounded bg-blue-600 px-3 py-2 font-medium disabled:opacity-50"
-        >
-          {isSubmitting ? "Criando…" : "Criar conta"}
-        </button>
-        <p className="text-sm text-neutral-400">
-          Já tem conta?{" "}
-          <Link href="/login" className="text-blue-400 hover:underline">
-            Entrar
-          </Link>
-        </p>
-      </form>
+    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-4 p-6 text-center">
+      <h1 className="text-2xl font-semibold">Cadastro fechado</h1>
+      <p className="text-sm text-neutral-400">
+        Este site não aceita novas contas. Se você já tem acesso, entre pela tela de login.
+      </p>
+      <Link href="/login" className="rounded bg-blue-600 px-3 py-2 font-medium hover:bg-blue-500">
+        Ir para o login
+      </Link>
     </main>
   );
 }

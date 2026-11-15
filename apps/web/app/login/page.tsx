@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { ApiError } from "@/lib/api-client";
@@ -97,12 +96,6 @@ export default function LoginPage() {
         >
           {isSubmitting ? "Entrando…" : "Entrar"}
         </button>
-        <p className="text-sm text-neutral-400">
-          Não tem conta?{" "}
-          <Link href="/register" className="text-blue-400 hover:underline">
-            Cadastre-se
-          </Link>
-        </p>
       </form>
     </main>
   );

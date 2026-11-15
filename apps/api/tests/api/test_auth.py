@@ -88,3 +88,15 @@ def test_logout_revokes_refresh_token(client: TestClient):
 
     refresh_response = client.post("/api/v1/auth/refresh")
     assert refresh_response.status_code == 401
+
+
+def test_registration_can_be_closed(client: TestClient, monkeypatch):
+    from src.interfaces.http.v1 import auth as auth_routes
+
+    monkeypatch.setattr(auth_routes.settings, "registration_open", False)
+    response = client.post(
+        "/api/v1/auth/register",
+        json={"organization_name": "Outra", "email": "outra@x.io", "password": "senha-segura-123"},
+    )
+    assert response.status_code == 403
+    assert "fechado" in response.json()["detail"]
