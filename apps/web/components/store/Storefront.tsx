@@ -5,7 +5,7 @@ import Link from "next/link";
 import { apiFetch, ApiError } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/format";
 import type { CartLine, OrderLine, PublicProduct, PublicStore, StoreSlide } from "@/lib/store";
-import { computeTotals, darkVariant, isBrandLogo, promoNotices, unitPrice, formatWhatsappDisplay, logoForTheme, instagramEmbedUrl, priceLabel, themeVars, whatsappLink } from "@/lib/store";
+import { computeTotals, darkVariant, formatPercent, isBrandLogo, promoNotices, unitPrice, formatWhatsappDisplay, logoForTheme, instagramEmbedUrl, priceLabel, themeVars, whatsappLink } from "@/lib/store";
 import { focusStyle } from "@/lib/focus";
 import { matchesSearch } from "@/lib/search";
 import { trackStoreEvent, useVisitTracker } from "@/lib/visits";
@@ -18,6 +18,7 @@ import { SplashIntro } from "./SplashIntro";
 import { DesktopNav, MenuButton, MobileMenu, type NavCategory } from "./StoreNav";
 import { ProductCard } from "./ProductCard";
 import { ProductModal } from "./ProductModal";
+import { PromoPopup, PromoSideTab, PromoStrip, usePromoAutoOpen } from "./PromoPopup";
 import {
   IconArrowRight,
   IconCart,
@@ -36,7 +37,6 @@ import { IMG_WIDTH, imgSrc } from "@/lib/img";
 import {
   InstallAppButton,
   ProductionEta,
-  PromoBanner,
   TrustBadges,
   pickRelated,
   productLink,
@@ -313,6 +313,30 @@ export function Storefront({ slug }: { slug: string }) {
     [store]
   );
   const total = computeTotals(orderLines, discountRules).total;
+
+  // Avisos de desconto: faixa, aba lateral e caixa de boas-vindas.
+  const [promoOpen, setPromoOpen] = useState(false);
+  const openPromo = useCallback(() => setPromoOpen(true), []);
+  const closePromo = useCallback(() => setPromoOpen(false), []);
+  const promoList = useMemo(() => {
+    if (!store) return [];
+    const list = promoNotices(store.settings);
+    // Descontos só em alguns produtos (sem promoção geral): avisa o maior.
+    const best = Math.max(0, ...store.products.map((p) => p.discount_percent ?? 0));
+    if (best > (store.settings.promo_percent ?? 0))
+      list.push(`Peças selecionadas com até ${formatPercent(best)} OFF`);
+    return list;
+  }, [store]);
+  const promoMax = useMemo(() => {
+    if (!store) return 0;
+    const s = store.settings;
+    return Math.max(
+      s.promo_percent ?? 0,
+      ...(s.cart_tiers ?? []).map((t) => t.percent),
+      ...store.products.map((p) => p.discount_percent ?? 0)
+    );
+  }, [store]);
+  usePromoAutoOpen(promoList.length > 0, openPromo);
 
   const showToast = useCallback((message: string) => {
     setToast(message);
@@ -717,6 +741,8 @@ export function Storefront({ slug }: { slug: string }) {
                 />
                 </div>
 
+                <PromoStrip notices={promoList} onClick={openPromo} />
+
                 <button
                   onClick={openSearch}
                   className="group flex h-14 w-full items-center gap-3 rounded-full border border-[var(--line)] bg-[var(--surface)] px-5 text-left text-[var(--muted)] shadow-sm transition hover:border-[var(--accent)] hover:shadow-md active:scale-[0.99] sm:h-16"
@@ -730,7 +756,6 @@ export function Storefront({ slug }: { slug: string }) {
 
                 <TrustBadges badges={settings.trust_badges} />
 
-                <PromoBanner notices={promoNotices(settings)} stack={!!settings.discounts_stack} />
 
                 {featuredProducts.length > 0 && (
                   <section className="space-y-6">
@@ -1298,6 +1323,18 @@ export function Storefront({ slug }: { slug: string }) {
           </div>
         </div>
       )}
+
+      <PromoSideTab maxPercent={promoMax} onOpen={openPromo} />
+      <PromoPopup
+        notices={promoList}
+        open={promoOpen}
+        onClose={closePromo}
+        stack={!!settings.discounts_stack}
+        onShop={() => {
+          setPromoOpen(false);
+          openCategory(null);
+        }}
+      />
 
       <SearchOverlay
         open={searchOpen}
