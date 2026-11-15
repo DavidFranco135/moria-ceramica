@@ -287,6 +287,15 @@ export default function PedidosPage() {
     // app, a URL nova pode chegar depois da montagem.
   }, [isLoading]);
 
+  // Produtos escolhidos no formulário de novo pedido (gravados ao salvar).
+  type DraftLine = { key: string; productId: string; quantity: string; unitCost: string; unitPrice: string };
+  const [draftLines, setDraftLines] = useState<DraftLine[]>([]);
+  const [draftProductId, setDraftProductId] = useState("");
+  const [draftQuantity, setDraftQuantity] = useState("1");
+  const [draftUnitCost, setDraftUnitCost] = useState("");
+  const [draftUnitPrice, setDraftUnitPrice] = useState("");
+  const [isPricingDraft, setIsPricingDraft] = useState(false);
+
   const [itemProductId, setItemProductId] = useState("");
   const [itemQuantity, setItemQuantity] = useState("1");
   const [itemUnitCost, setItemUnitCost] = useState("");
@@ -465,7 +474,7 @@ export default function PedidosPage() {
     setIsSaving(true);
     setError(null);
     try {
-      await apiFetch(`${orgPath}/orders`, {
+      const created = await apiFetch<Order>(`${orgPath}/orders`, {
         method: "POST",
         accessToken,
         body: JSON.stringify({
@@ -475,6 +484,28 @@ export default function PedidosPage() {
           status: newStatus,
         }),
       });
+      // Produtos escolhidos no formulário, na ordem em que foram adicionados.
+      // Um produto escolhido mas ainda não adicionado à lista também entra.
+      const pending = draftProductId
+        ? [{ key: "pendente", productId: draftProductId, quantity: draftQuantity, unitCost: draftUnitCost, unitPrice: draftUnitPrice }]
+        : [];
+      for (const line of [...draftLines, ...pending]) {
+        await apiFetch(`${orgPath}/orders/${created.id}/items`, {
+          method: "POST",
+          accessToken,
+          body: JSON.stringify({
+            product_id: line.productId,
+            quantity: Math.max(1, Number(line.quantity || 1)),
+            unit_cost: line.unitCost ? Number(line.unitCost) : null,
+            unit_price: line.unitPrice ? Number(line.unitPrice) : null,
+          }),
+        });
+      }
+      setDraftLines([]);
+      setDraftProductId("");
+      setDraftQuantity("1");
+      setDraftUnitCost("");
+      setDraftUnitPrice("");
       setCustomerId("");
       setNotes("");
       setNewStatus("quote");
@@ -484,6 +515,8 @@ export default function PedidosPage() {
       setDueDate("");
       setShowForm(false);
       await load();
+      // O pedido novo já abre na parte de produtos, pronto para receber itens.
+      void openProducts(created.id);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Falha ao criar pedido.");
     } finally {
@@ -509,6 +542,8 @@ export default function PedidosPage() {
   }
 
   function startEditOrder(order: Order) {
+    // Editar também mostra os produtos do pedido, logo abaixo dos dados.
+    if (expandedOrderId !== order.id) void toggleItems(order.id);
     setEditingOrderId(order.id);
     setEditCustomerId(order.customer_id);
     setEditNotes(order.notes ?? "");
@@ -642,6 +677,73 @@ export default function PedidosPage() {
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Falha ao remover item.");
     }
+  }
+
+  // Preço e custo sugeridos de um produto: o preço manual dele, ou o cálculo
+  // pelo perfil de custo padrão. Sem nenhum dos dois, fica em branco.
+  async function suggestedPricing(productId: string): Promise<{ cost: string; price: string }> {
+    const manualPrice = products.find((p) => p.id === productId)?.manual_price;
+    if (manualPrice != null) return { cost: "", price: manualPrice.toFixed(2) };
+    if (!accessToken || !defaultCostProfile) return { cost: "", price: "" };
+    try {
+      const cost = await apiFetch<ProductCost>(
+        `${orgPath}/products/${productId}/cost?cost_profile_id=${defaultCostProfile.id}`,
+        { accessToken }
+      );
+      return { cost: cost.production_cost.toFixed(2), price: cost.suggested_price.toFixed(2) };
+    } catch (err) {
+      if (!(err instanceof ApiError && err.status === 422)) {
+        setError(err instanceof ApiError ? err.message : "Falha ao calcular custo do produto.");
+      }
+      return { cost: "", price: "" };
+    }
+  }
+
+  async function handleDraftPick(productId: string) {
+    setDraftProductId(productId);
+    setDraftUnitCost("");
+    setDraftUnitPrice("");
+    if (!productId) return;
+    setIsPricingDraft(true);
+    const { cost, price } = await suggestedPricing(productId);
+    setDraftUnitCost(cost);
+    setDraftUnitPrice(price);
+    setIsPricingDraft(false);
+  }
+
+  function addDraftLine() {
+    if (!draftProductId) return;
+    setDraftLines((lines) => [
+      ...lines,
+      {
+        key: `${draftProductId}-${Date.now()}`,
+        productId: draftProductId,
+        quantity: draftQuantity || "1",
+        unitCost: draftUnitCost,
+        unitPrice: draftUnitPrice,
+      },
+    ]);
+    setDraftProductId("");
+    setDraftQuantity("1");
+    setDraftUnitCost("");
+    setDraftUnitPrice("");
+  }
+
+  function updateDraftLine(key: string, patch: Partial<DraftLine>) {
+    setDraftLines((lines) => lines.map((l) => (l.key === key ? { ...l, ...patch } : l)));
+  }
+
+  const draftTotal = draftLines.reduce(
+    (sum, l) => sum + Number(l.unitPrice || 0) * Math.max(1, Number(l.quantity || 1)),
+    0
+  );
+
+  // Abre os detalhes do pedido e rola até "Produtos do pedido".
+  async function openProducts(orderId: string) {
+    if (expandedOrderId !== orderId) await toggleItems(orderId);
+    setTimeout(() => {
+      document.getElementById(`produtos-${orderId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 350);
   }
 
   async function toggleItems(orderId: string) {
@@ -838,13 +940,116 @@ export default function PedidosPage() {
                 </span>
               </div>
             </div>
+            <div className="space-y-3 rounded-lg border border-neutral-800 p-3 sm:col-span-2">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-semibold text-neutral-200">Produtos do pedido</p>
+                {draftLines.length > 0 && (
+                  <span className="text-sm text-neutral-300">
+                    Total: <span className="font-semibold text-neutral-100">{formatCurrency(draftTotal)}</span>
+                  </span>
+                )}
+              </div>
+
+              {draftLines.length > 0 && (
+                <ul className="space-y-2">
+                  {draftLines.map((line) => {
+                    const subtotal = Number(line.unitPrice || 0) * Math.max(1, Number(line.quantity || 1));
+                    return (
+                      <li
+                        key={line.key}
+                        className="grid grid-cols-[1fr_auto] items-center gap-2 rounded border border-neutral-800 bg-neutral-900/60 p-2 sm:grid-cols-[1fr_5rem_8rem_6.5rem_auto]"
+                      >
+                        <span className="col-span-2 truncate text-sm text-neutral-200 sm:col-span-1">
+                          {productName(line.productId)}
+                        </span>
+                        <label className="flex items-center gap-1 text-xs text-neutral-500">
+                          Qtd.
+                          <input
+                            type="number"
+                            min={1}
+                            value={line.quantity}
+                            onChange={(e) => updateDraftLine(line.key, { quantity: e.target.value })}
+                            className="w-full rounded border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-sm text-neutral-100"
+                          />
+                        </label>
+                        <label className="flex items-center gap-1 text-xs text-neutral-500">
+                          R$
+                          <input
+                            type="number"
+                            step="0.01"
+                            min={0}
+                            placeholder="Preço unit."
+                            value={line.unitPrice}
+                            onChange={(e) => updateDraftLine(line.key, { unitPrice: e.target.value })}
+                            className="w-full rounded border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-sm text-neutral-100"
+                          />
+                        </label>
+                        <span className="text-right text-sm text-neutral-300">{formatCurrency(subtotal)}</span>
+                        <button
+                          type="button"
+                          onClick={() => setDraftLines((lines) => lines.filter((l) => l.key !== line.key))}
+                          className="rounded-full border border-red-500/40 px-3 py-1 text-xs text-red-300 hover:bg-red-500/10"
+                        >
+                          Remover
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+
+              {products.length === 0 ? (
+                <p className="text-xs text-yellow-300">Cadastre um produto na aba Produtos para poder adicioná-lo aqui.</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_5rem_8rem_auto]">
+                  <ProductPicker
+                    products={products}
+                    value={draftProductId}
+                    onChange={handleDraftPick}
+                    className="col-span-2 sm:col-span-1"
+                  />
+                  <input
+                    type="number"
+                    min={1}
+                    placeholder="Qtd."
+                    value={draftQuantity}
+                    onChange={(e) => setDraftQuantity(e.target.value)}
+                    className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
+                  />
+                  <input
+                    type="number"
+                    step="0.01"
+                    min={0}
+                    placeholder={isPricingDraft ? "Calculando…" : "Preço unit."}
+                    value={draftUnitPrice}
+                    onChange={(e) => setDraftUnitPrice(e.target.value)}
+                    className="rounded border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={addDraftLine}
+                    disabled={!draftProductId || isPricingDraft}
+                    className="col-span-2 rounded border border-blue-500/60 px-4 py-2 text-sm font-medium text-blue-300 hover:bg-blue-500/10 disabled:opacity-40 sm:col-span-1"
+                  >
+                    + Adicionar
+                  </button>
+                </div>
+              )}
+              <p className="text-xs text-neutral-500">
+                O preço vem preenchido pelo cadastro do produto; você pode mudar antes de salvar.
+              </p>
+            </div>
             {customers.length === 0 && (
               <p className="text-xs text-yellow-300 sm:col-span-2">
                 Nenhum cliente cadastrado ainda — crie um cliente primeiro na aba Clientes.
               </p>
             )}
             <button type="submit" disabled={isSaving || !customerId} className="rounded bg-blue-600 px-4 py-2 font-medium disabled:opacity-50 sm:col-span-2">
-              {isSaving ? "Salvando…" : "Salvar pedido"}
+              {isSaving
+                ? "Salvando…"
+                : draftLines.length > 0
+                  ? `Salvar pedido · ${draftLines.length} produto(s) · ${formatCurrency(draftTotal)}`
+                  : "Salvar pedido"}
             </button>
           </form>
         )}
@@ -932,6 +1137,9 @@ export default function PedidosPage() {
                     <button onClick={() => startEditOrder(order)} className="text-blue-400 hover:underline">
                       Editar
                     </button>
+                    <button onClick={() => openProducts(order.id)} className="text-blue-400 hover:underline">
+                      Produtos ({(order.items ?? []).length})
+                    </button>
                     <button onClick={() => setPdfOrderId(order.id)} className="text-amber-400 hover:underline">
                       Gerar PDF
                     </button>
@@ -998,6 +1206,10 @@ export default function PedidosPage() {
                         customer={customers.find((c) => c.id === order.customer_id) ?? null}
                         items={itemsByOrder[order.id]}
                       />
+                      <div id={`produtos-${order.id}`} className="flex scroll-mt-24 items-center justify-between gap-2 border-t border-neutral-800 pt-3">
+                        <h3 className="text-sm font-semibold text-neutral-200">Produtos do pedido</h3>
+                        <span className="text-xs text-neutral-500">Edite, remova ou adicione abaixo</span>
+                      </div>
                       {!itemsByOrder[order.id] ? (
                         <p className="text-sm text-neutral-500">Carregando itens…</p>
                       ) : itemsByOrder[order.id].length === 0 ? (
@@ -1009,7 +1221,7 @@ export default function PedidosPage() {
                               <div className="flex flex-wrap items-center justify-between gap-2">
                                 <span className="min-w-0 flex-1">
                                   <span className="block truncate">
-                                    {productName(item.product_id)} · Qtd. {item.quantity} — {item.status}
+                                    {productName(item.product_id)} · Qtd. {item.quantity}
                                   </span>
                                   <span className="block text-xs text-neutral-500">
                                     Unit.: {formatCurrency(item.unit_price ?? 0)} · Custo unit.:{" "}
@@ -1018,11 +1230,17 @@ export default function PedidosPage() {
                                 </span>
                                 <span className="shrink-0">{formatCurrency((item.unit_price ?? 0) * item.quantity)}</span>
                                 <span className="shrink-0 space-x-2">
-                                  <button onClick={() => startEditItem(item)} className="text-xs text-blue-400 hover:underline">
-                                    Editar
+                                  <button
+                                    onClick={() => (editingItemId === item.id ? cancelEditItem() : startEditItem(item))}
+                                    className="rounded-full border border-blue-500/40 px-3 py-1 text-xs text-blue-300 hover:bg-blue-500/10"
+                                  >
+                                    {editingItemId === item.id ? "Fechar" : "Editar"}
                                   </button>
-                                  <button onClick={() => handleDeleteItem(order.id, item)} className="text-xs text-red-400 hover:underline">
-                                    Excluir
+                                  <button
+                                    onClick={() => handleDeleteItem(order.id, item)}
+                                    className="rounded-full border border-red-500/40 px-3 py-1 text-xs text-red-300 hover:bg-red-500/10"
+                                  >
+                                    Remover
                                   </button>
                                 </span>
                               </div>
@@ -1070,8 +1288,9 @@ export default function PedidosPage() {
                       ) : (
                         <form
                           onSubmit={(e) => handleAddItem(order.id, e)}
-                          className="grid grid-cols-1 gap-2 border-t border-neutral-800 pt-3 sm:grid-cols-2"
+                          className="grid grid-cols-1 gap-2 rounded-lg border border-dashed border-neutral-700 p-3 sm:grid-cols-2"
                         >
+                          <p className="text-xs font-medium text-neutral-400 sm:col-span-2">Adicionar produto ao pedido</p>
                           <ProductPicker
                             products={products}
                             value={itemProductId}
@@ -1107,7 +1326,7 @@ export default function PedidosPage() {
                             disabled={isAddingItem || isPricingItem || !itemProductId}
                             className="w-full rounded bg-blue-600 px-4 py-2 text-sm font-medium disabled:opacity-50"
                           >
-                            {isPricingItem ? "Calculando…" : isAddingItem ? "Adicionando…" : "Adicionar item"}
+                            {isPricingItem ? "Calculando…" : isAddingItem ? "Adicionando…" : "+ Adicionar produto"}
                           </button>
                           {!defaultCostProfile && (
                             <p className="text-xs text-yellow-300 sm:col-span-2">
