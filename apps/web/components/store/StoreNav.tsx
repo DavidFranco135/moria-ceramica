@@ -82,10 +82,10 @@ export function DesktopNav({ categories, tab, activeTopId, activeCategoryId, onT
   };
 
   return (
-    <div className="hidden border-t border-[var(--line)] md:block" onMouseLeave={scheduleClose} onMouseEnter={cancelClose}>
+    <div className="hidden border-t border-[var(--line)] lg:block" onMouseLeave={scheduleClose} onMouseEnter={cancelClose}>
       <nav
         aria-label="Categorias"
-        className="mx-auto flex max-w-[1600px] items-center gap-7 overflow-x-auto px-6 lg:px-10 [mask-image:linear-gradient(to_right,black_calc(100%-48px),transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-center gap-x-6 px-6 lg:px-10 xl:gap-x-8"
       >
         <button className={linkClass(tab === 0)} onMouseEnter={() => setOpenId(null)} onClick={() => { setOpenId(null); onTab(0); }}>
           Início
@@ -119,8 +119,6 @@ export function DesktopNav({ categories, tab, activeTopId, activeCategoryId, onT
         <button className={linkClass(tab === 3)} onMouseEnter={() => setOpenId(null)} onClick={() => { setOpenId(null); onTab(3); }}>
           Contato
         </button>
-        {/* Folga no fim, para o último item não ficar sob o esmaecido da borda. */}
-        <span aria-hidden className="w-8 shrink-0" />
       </nav>
 
       {/* Painel de subcategorias: ocupa a largura do site, logo abaixo do menu. */}
@@ -181,7 +179,7 @@ export function MenuButton({ onClick }: { onClick: () => void }) {
     <button
       onClick={onClick}
       aria-label="Abrir menu"
-      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] transition active:scale-95 md:hidden"
+      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] transition active:scale-95 lg:hidden"
     >
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" className="h-5 w-5">
         <path d="M4 7h16M4 12h16M4 17h10" />
@@ -254,7 +252,7 @@ export function MobileMenu({
   const rowTone = (active: boolean) => (active ? "bg-[var(--accent-soft)] text-[var(--accent)]" : "text-[var(--ink)]");
 
   return (
-    <div className={`fixed inset-0 z-[70] md:hidden ${open ? "" : "pointer-events-none"}`} aria-hidden={!open}>
+    <div className={`fixed inset-0 z-[70] lg:hidden ${open ? "" : "pointer-events-none"}`} aria-hidden={!open}>
       <div
         onClick={onClose}
         className={`absolute inset-0 bg-black/45 backdrop-blur-[2px] transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"}`}

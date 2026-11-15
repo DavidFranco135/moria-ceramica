@@ -726,7 +726,7 @@ export default function LojaAdminPage() {
               </div>
             </Card>
 
-            <Card title="Diferenciais" hint="Até 3 cards logo abaixo da capa (ex.: Entrega rápida, Personalizado).">
+            <Card title="Diferenciais e faixa do topo" hint="Até 3 itens. Aparecem como cards abaixo da capa e também passam na faixa de avisos do topo da loja (título · texto). Para mudar a faixa, edite aqui e salve.">
               <div className="space-y-2">
                 {settings.highlights.map((h, i) => (
                   <div key={i} className="flex flex-col gap-2 sm:flex-row">

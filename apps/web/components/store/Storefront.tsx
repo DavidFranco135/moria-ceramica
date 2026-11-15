@@ -521,7 +521,7 @@ export function Storefront({ slug }: { slug: string }) {
         <AnnouncementBar items={announcements} />
         <div className="fx-head-row mx-auto flex max-w-[1600px] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
           <MenuButton onClick={() => setMenuOpen(true)} />
-          <button onClick={() => goTab(0)} className="flex min-w-0 flex-1 items-center gap-3 text-left md:flex-none">
+          <button onClick={() => goTab(0)} className="flex min-w-0 flex-1 items-center gap-3 text-left lg:flex-none">
             {settings.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
