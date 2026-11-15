@@ -121,7 +121,7 @@ export function CartDrawer({
                         <img
                           src={imgSrc(product.photo_urls[0], IMG_WIDTH.thumb)}
                           alt=""
-                          className="h-full w-full object-cover"
+                          className="h-full w-full object-contain"
                           style={focusStyle(product.photo_focus, product.photo_urls[0])}
                         />
                       ) : (

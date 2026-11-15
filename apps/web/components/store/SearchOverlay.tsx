@@ -141,7 +141,7 @@ export function SearchOverlay({
                           src={imgSrc(p.photo_urls[0], IMG_WIDTH.thumb)}
                           alt=""
                           loading="lazy"
-                          className="h-full w-full object-cover"
+                          className="h-full w-full object-contain"
                         />
                       )}
                     </span>

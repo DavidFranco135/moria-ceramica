@@ -24,6 +24,7 @@ import { IMG_WIDTH, imgSrc } from "@/lib/img";
 import { focusFor, focusStyle } from "@/lib/focus";
 import { PhotoFramer } from "@/components/PhotoFramer";
 import { VisitStats } from "@/components/store/VisitStats";
+import { CatalogImport } from "@/components/CatalogImport";
 
 const EMPTY: StoreSettings = {
   display_name: "",
@@ -464,7 +465,9 @@ export default function LojaAdminPage() {
         // Categorias: a API nova sempre devolve cover_url e cover_x.
         (body.categories.length > 0 && savedCats.some((c) => c.cover_url === undefined || c.cover_x === undefined)) ||
         // Slides: a API nova sempre devolve a chave "x" (null quando sem enquadramento).
-        (body.slides.length > 0 && savedSlides.some((s) => s.x === undefined));
+        (body.slides.length > 0 && savedSlides.some((s) => s.x === undefined)) ||
+        // Subcategorias: a API nova sempre devolve parent_id.
+        (body.categories.some((c) => c.parent_id) && savedCats.some((c) => (c as { parent_id?: string }).parent_id === undefined));
       setSettings({ ...EMPTY, ...saved.settings });
       setDirty(false);
       clearDraft(draftKey);
@@ -515,6 +518,24 @@ export default function LojaAdminPage() {
           <>
             {accessToken && currentOrganizationId && (
               <VisitStats orgPath={orgPath} accessToken={accessToken} />
+            )}
+            {accessToken && (
+              <Card
+                title="Catálogo de Peças 2026"
+                hint="Cadastra de uma vez as categorias, subcategorias e produtos do catálogo, com preços e descrições. As fotos você adiciona depois em cada produto."
+              >
+                <CatalogImport
+                  orgPath={orgPath}
+                  accessToken={accessToken}
+                  settings={settings}
+                  products={products}
+                  dirty={dirty}
+                  onDone={(msg) => {
+                    setMessage(msg);
+                    void load();
+                  }}
+                />
+              </Card>
             )}
             <Card title="Link da loja pública" hint="Compartilhe com seus clientes. Não precisa de login.">
               <div className="flex flex-col gap-2 sm:flex-row">

@@ -468,7 +468,7 @@ export function Storefront({ slug }: { slug: string }) {
     { title: "Escolha seus produtos", text: "Navegue pelo catálogo e toque na peça para ver fotos, medidas e detalhes." },
     { title: "Monte seu pedido", text: "Adicione ao pedido, ajuste a quantidade e escreva a cor do esmalte ou o nome e a frase para personalizar." },
     { title: "Envie pelo WhatsApp", text: "Um toque e o pedido completo vai pronto para o nosso WhatsApp, sem cadastro." },
-    { title: "Combine e receba", text: "Confirmamos valor, prazo de produção, pagamento e entrega. Peças sob encomenda passam por modelagem, secagem e duas queimas." },
+    { title: "Combine e receba", text: "Confirmamos valor, prazo e frete. Pagamento: 50% na confirmação e 50% antes da entrega ou envio, por Pix. Produção em até 60 dias úteis." },
   ];
 
   return (
@@ -486,14 +486,16 @@ export function Storefront({ slug }: { slug: string }) {
               <img
                 src={imgSrc(settings.logo_url, IMG_WIDTH.thumb)}
                 alt={storeName}
-                className="h-11 w-11 shrink-0 rounded-2xl object-cover shadow-md"
+                // Logo inteira, no formato dela (redonda, larga ou quadrada).
+                className="h-12 w-auto max-w-[170px] shrink-0 object-contain sm:h-14"
               />
             ) : (
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent)] font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--accent-ink)] shadow-md">
                 {storeName.slice(0, 1).toUpperCase()}
               </span>
             )}
-            <span className="min-w-0">
+            {/* Com logo, o nome escrito só aparece do tablet para cima (a logo já traz o nome). */}
+            <span className={`min-w-0 ${settings.logo_url ? "hidden sm:block" : ""}`}>
               <span className="block truncate font-[family-name:var(--font-display)] text-lg font-semibold leading-tight">
                 {storeName}
               </span>
@@ -1090,8 +1092,9 @@ export function Storefront({ slug }: { slug: string }) {
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--ink)]">Compra e entrega</p>
             <ul className="space-y-2 leading-relaxed">
               <li>Pedido enviado pelo WhatsApp, sem cadastro.</li>
-              <li>Pagamento, prazo e entrega combinados no atendimento.</li>
-              <li>Peças sob encomenda são produzidas após a confirmação do pedido.</li>
+              <li>Produção em até 60 dias úteis, conforme a quantidade de peças e os períodos em andamento.</li>
+              <li>Pagamento: 50% na confirmação do pedido e 50% antes da entrega ou envio. Pix.</li>
+              <li>Frete por conta do cliente. Consulte disponibilidade e valor para a sua região.</li>
             </ul>
           </div>
         </div>

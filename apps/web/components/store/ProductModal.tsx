@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import type { CartLine, PublicProduct } from "@/lib/store";
 import { priceLabel, whatsappLink } from "@/lib/store";
-import { focusStyle } from "@/lib/focus";
 import { useOverlayHistory } from "@/lib/use-overlay-history";
 import {
   IconChevronLeft,
@@ -86,16 +85,27 @@ export function ProductModal({
           <div className="relative aspect-[4/5] w-full overflow-hidden sm:aspect-auto sm:h-full">
             {photos.length > 0 ? (
               photos.map((src, i) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <div
                   key={src}
-                  src={imgSrc(src, IMG_WIDTH.large)}
-                  alt={`${product.name} - foto ${i + 1}`}
-                  style={focusStyle(product.photo_focus, src)}
-                  className={`absolute inset-0 h-full w-full object-cover transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                  className={`absolute inset-0 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                     i === photo ? "scale-100 opacity-100" : "scale-105 opacity-0"
                   }`}
-                />
+                >
+                  {/* Foto inteira (sem corte) sobre um fundo desfocado dela mesma. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={imgSrc(src, IMG_WIDTH.large)}
+                    alt=""
+                    aria-hidden
+                    className="absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-2xl"
+                  />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={imgSrc(src, IMG_WIDTH.large)}
+                    alt={`${product.name} - foto ${i + 1}`}
+                    className="relative h-full w-full object-contain"
+                  />
+                </div>
               ))
             ) : (
               <div className="flex h-full w-full items-center justify-center font-[family-name:var(--font-display)] text-8xl text-[var(--accent)] opacity-30">

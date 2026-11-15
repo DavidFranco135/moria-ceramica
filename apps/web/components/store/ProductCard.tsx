@@ -2,7 +2,6 @@
 
 import type { PublicProduct } from "@/lib/store";
 import { priceLabel } from "@/lib/store";
-import { focusStyle } from "@/lib/focus";
 import { IconMinus, IconPlus } from "./ui";
 import { IMG_WIDTH, imgSrc } from "@/lib/img";
 
@@ -30,15 +29,27 @@ export function ProductCard({
       >
         {cover ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={imgSrc(cover, IMG_WIDTH.card)}
-            alt={product.name}
-            loading="lazy"
-            style={focusStyle(product.photo_focus, cover)}
-            className={`h-full w-full object-cover transition duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.07] ${
-              product.available ? "" : "grayscale"
-            }`}
-          />
+          <>
+            {/* Fundo desfocado da própria foto: completa as sobras, já que a
+                foto aparece inteira (sem corte), qualquer que seja o formato. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={imgSrc(cover, IMG_WIDTH.card)}
+              alt=""
+              aria-hidden
+              loading="lazy"
+              className="absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-xl"
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={imgSrc(cover, IMG_WIDTH.card)}
+              alt={product.name}
+              loading="lazy"
+              className={`relative h-full w-full object-contain transition duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04] ${
+                product.available ? "" : "grayscale"
+              }`}
+            />
+          </>
         ) : (
           <div className="flex h-full w-full items-center justify-center font-[family-name:var(--font-display)] text-6xl text-[var(--accent)] opacity-40">
             {product.name.slice(0, 1).toUpperCase()}
