@@ -64,13 +64,46 @@ function useStoredState<T>(key: string, initial: T): [T, (next: T | ((prev: T) =
   return [value, setValue];
 }
 
+// Palavra de destaque nos títulos: itálico leve, como na arte de capa.
+function Em({ children }: { children: React.ReactNode }) {
+  return <em className="font-normal italic tracking-normal">{children}</em>;
+}
+
+// Faixa de avisos que passa devagar no topo (vem dos Diferenciais de Minha
+// Loja). O texto é repetido para o giro não ter emenda; para ao passar o mouse.
+function AnnouncementBar({ items }: { items: string[] }) {
+  if (items.length === 0) return null;
+  const run = (hidden: boolean) => (
+    <div className="flex shrink-0 items-center" aria-hidden={hidden || undefined}>
+      {items.map((t, i) => (
+        <span key={i} className="flex items-center whitespace-nowrap">
+          <span className="px-6">{t}</span>
+          <span className="opacity-50">✦</span>
+        </span>
+      ))}
+    </div>
+  );
+  return (
+    <div className="fx-marquee bg-[var(--accent)] text-[var(--accent-ink)]">
+      <div className="overflow-hidden">
+        <div className="fx-marquee-track flex w-max py-2 text-[11px] font-medium uppercase tracking-[0.18em]">
+          {run(false)}
+          {run(true)}
+          {run(true)}
+          {run(true)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SectionTitle({
   eyebrow,
   title,
   action,
 }: {
   eyebrow?: string;
-  title: string;
+  title: React.ReactNode;
   action?: React.ReactNode;
 }) {
   return (
@@ -361,6 +394,13 @@ export function Storefront({ slug }: { slug: string }) {
     .map((link) => instagramEmbedUrl(link))
     .filter((url): url is string => url !== null);
   const instagramHandle = settings.instagram.replace(/^@/, "").trim();
+  // Avisos da faixa do topo: os Diferenciais de Minha Loja, mais o WhatsApp.
+  const announcements = [
+    ...settings.highlights
+      .filter((h) => h.title.trim())
+      .map((h) => (h.text.trim() ? `${h.title.trim()} · ${h.text.trim()}` : h.title.trim())),
+    "Pedidos pelo WhatsApp, sem cadastro",
+  ];
   const openProduct = openProductId ? productsById.get(openProductId) ?? null : null;
   // Todos os destaques marcados, na ordem escolhida pelo lojista. (Antes a lista
   // era cortada em 8 e seguia a ordem de cadastro, por isso "sumiam" destaques.)
@@ -478,7 +518,8 @@ export function Storefront({ slug }: { slug: string }) {
       className="store-fx min-h-screen overflow-x-clip bg-[var(--bg)] font-[family-name:var(--font-sans)] text-[var(--ink)] antialiased selection:bg-[var(--accent)] selection:text-[var(--accent-ink)]"
     >
       <header className="fx-header sticky top-0 z-50 border-b border-[var(--line)] bg-[var(--surface-glass)] backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
+        <AnnouncementBar items={announcements} />
+        <div className="fx-head-row mx-auto flex max-w-[1600px] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
           <MenuButton onClick={() => setMenuOpen(true)} />
           <button onClick={() => goTab(0)} className="flex min-w-0 flex-1 items-center gap-3 text-left md:flex-none">
             {settings.logo_url ? (
@@ -487,7 +528,7 @@ export function Storefront({ slug }: { slug: string }) {
                 src={imgSrc(settings.logo_url, IMG_WIDTH.thumb)}
                 alt={storeName}
                 // Logo inteira, no formato dela (redonda, larga ou quadrada).
-                className="h-12 w-auto max-w-[170px] shrink-0 object-contain sm:h-14"
+                className="fx-logo h-12 w-auto max-w-[170px] shrink-0 object-contain sm:h-14"
               />
             ) : (
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent)] font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--accent-ink)] shadow-md">
@@ -527,6 +568,7 @@ export function Storefront({ slug }: { slug: string }) {
             <button
               onClick={() => setCartOpen(true)}
               aria-label="Abrir pedido"
+              data-cart-target
               className="fx-btn relative flex h-10 items-center gap-2 rounded-full bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--accent-ink)] shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
             >
               <IconCart className="h-5 w-5" />
@@ -597,7 +639,7 @@ export function Storefront({ slug }: { slug: string }) {
                   <section className="space-y-6">
                     <SectionTitle
                       eyebrow="Seleção"
-                      title="Peças em destaque"
+                      title={<>Peças em <Em>destaque</Em></>}
                       action={
                         <button
                           onClick={() => openCategory(null)}
@@ -616,7 +658,7 @@ export function Storefront({ slug }: { slug: string }) {
               {categories.length > 0 && (
                 <section className="space-y-8">
                   <Reveal>
-                    <SectionTitle eyebrow="Navegue" title="Categorias" />
+                    <SectionTitle eyebrow="Navegue" title={<>Nossas <Em>coleções</Em></>} />
                   </Reveal>
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
                     {categories.map((c, i) => (
@@ -725,7 +767,7 @@ export function Storefront({ slug }: { slug: string }) {
                 <section className="space-y-6">
                   <SectionTitle
                     eyebrow="Do ateliê"
-                    title="Do barro à mesa"
+                    title={<>Do barro à <Em>mesa</Em></>}
                     action={
                       instagramHandle ? (
                         <a
@@ -910,7 +952,7 @@ export function Storefront({ slug }: { slug: string }) {
 
           {tab === 2 && (
             <section className="space-y-12">
-              <SectionTitle eyebrow="Passo a passo" title="Como fazer seu pedido" />
+              <SectionTitle eyebrow="Passo a passo" title={<>Como fazer seu <Em>pedido</Em></>} />
               <div className="grid gap-5 sm:grid-cols-2">
                 {steps.map((step, i) => (
                   <Reveal key={step.title} delay={i * 100}>
@@ -942,7 +984,7 @@ export function Storefront({ slug }: { slug: string }) {
 
           {tab === 3 && (
             <section className="space-y-10">
-              <SectionTitle eyebrow="Contato" title="Fale com a gente" />
+              <SectionTitle eyebrow="Contato" title={<>Fale com a <Em>gente</Em></>} />
               <div className="grid gap-5 lg:grid-cols-2">
                 <div className="grid gap-4">
                   <a

@@ -4,6 +4,7 @@ import type { PublicProduct } from "@/lib/store";
 import { priceLabel } from "@/lib/store";
 import { IconMinus, IconPlus } from "./ui";
 import { IMG_WIDTH, imgSrc } from "@/lib/img";
+import { flyToCart } from "./fx";
 
 export function ProductCard({
   product,
@@ -19,6 +20,8 @@ export function ProductCard({
   onChangeQty: (qty: number) => void;
 }) {
   const cover = product.photo_urls[0];
+  // Segunda foto: aparece ao passar o mouse (só em computador).
+  const second = product.photo_urls[1];
 
   return (
     <article className="fx-spotlight group relative flex flex-col overflow-hidden rounded-3xl border border-[var(--line)] bg-[var(--surface)] shadow-[0_1px_0_rgba(0,0,0,0.02)] transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:shadow-[0_24px_50px_-24px_rgba(0,0,0,0.35)]">
@@ -45,10 +48,31 @@ export function ProductCard({
               src={imgSrc(cover, IMG_WIDTH.card)}
               alt={product.name}
               loading="lazy"
+              data-fly-source
               className={`relative h-full w-full object-contain transition duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04] ${
                 product.available ? "" : "grayscale"
               }`}
             />
+            {second && (
+              <span className="absolute inset-0 hidden opacity-0 transition-opacity duration-700 ease-out [@media(hover:hover)]:block [@media(hover:hover)]:group-hover:opacity-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imgSrc(second, IMG_WIDTH.card)}
+                  alt=""
+                  aria-hidden
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full scale-110 object-cover blur-xl"
+                />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imgSrc(second, IMG_WIDTH.card)}
+                  alt=""
+                  aria-hidden
+                  loading="lazy"
+                  className="relative h-full w-full scale-[1.04] object-contain"
+                />
+              </span>
+            )}
           </>
         ) : (
           <div className="flex h-full w-full items-center justify-center font-[family-name:var(--font-display)] text-6xl text-[var(--accent)] opacity-40">
@@ -119,7 +143,10 @@ export function ProductCard({
             </div>
           ) : (
             <button
-              onClick={onAdd}
+              onClick={(e) => {
+                flyToCart(e.currentTarget.closest("article")?.querySelector("img[data-fly-source]") ?? null);
+                onAdd();
+              }}
               className="fx-btn inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--accent-ink)] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md active:translate-y-0"
             >
               <IconPlus className="h-4 w-4" />

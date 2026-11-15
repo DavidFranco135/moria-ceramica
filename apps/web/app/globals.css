@@ -66,6 +66,35 @@
   pointer-events: none;
 }
 
+/* Cabeçalho que encolhe ao rolar: a faixa de avisos recolhe, a linha do
+   cabeçalho fica mais baixa e a logo menor. */
+.store-fx .fx-marquee {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.store-fx .fx-header.is-scrolled .fx-marquee {
+  grid-template-rows: 0fr;
+}
+.store-fx .fx-head-row {
+  transition: padding 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.store-fx .fx-header.is-scrolled .fx-head-row {
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+}
+.store-fx .fx-logo {
+  transition: height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.store-fx .fx-header.is-scrolled .fx-logo {
+  height: 2.5rem;
+}
+
+/* Faixa de avisos: passa devagar; para ao passar o mouse. */
+.store-fx .fx-marquee-track:hover {
+  animation-play-state: paused;
+}
+
 /* Botões principais: halo, pressão, brilho que atravessa e onda no clique */
 .store-fx .fx-btn {
   position: relative;
@@ -161,6 +190,21 @@
   .store-fx .fx-pulse {
     animation: fx-pulse 2.4s ease-out infinite;
   }
+  .store-fx .fx-marquee-track {
+    animation: fx-marquee 60s linear infinite;
+  }
+}
+
+/* Com "reduzir movimento", a faixa fica parada e rola na mão. */
+@media (prefers-reduced-motion: reduce) {
+  .store-fx .fx-marquee > div {
+    overflow-x: auto;
+  }
+}
+
+@keyframes fx-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-25%); }
 }
 
 @keyframes fx-sweep {

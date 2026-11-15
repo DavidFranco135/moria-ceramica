@@ -2,7 +2,13 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 
 const sans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
-const display = Fraunces({ subsets: ["latin"], variable: "--font-display", display: "swap" });
+const display = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+  // Itálico para as palavras de destaque dos títulos ("mesa com *alma*").
+  style: ["normal", "italic"],
+});
 
 export const metadata: Metadata = {
   title: "Moriá Cerâmica",
