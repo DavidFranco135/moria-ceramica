@@ -14,6 +14,7 @@ import { FeaturedSlider } from "./FeaturedSlider";
 import { SearchOverlay } from "./SearchOverlay";
 import { useStoreFx } from "./fx";
 import { HeroSlider } from "./HeroSlider";
+import { SplashIntro } from "./SplashIntro";
 import { DesktopNav, MenuButton, MobileMenu, type NavCategory } from "./StoreNav";
 import { ProductCard } from "./ProductCard";
 import { ProductModal } from "./ProductModal";
@@ -359,14 +360,27 @@ export function Storefront({ slug }: { slug: string }) {
     return list;
   }, [store, search, sort, onlyAvailable, category]);
 
+  // A abertura fica sempre na primeira posição: assim ela não reinicia quando
+  // a loja termina de carregar (o resto da página troca por baixo dela).
+  const splash = (
+    <SplashIntro
+      logoUrl={store?.settings.logo_url || undefined}
+      name={store?.settings.display_name || store?.name || "Moriá Cerâmica"}
+      ready={store !== null || error !== null}
+    />
+  );
+
   if (error) {
     return (
+      <>
+      {splash}
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 p-6 text-center text-neutral-700">
         <div className="space-y-2">
           <p className="text-2xl font-semibold">{error}</p>
           <p className="text-sm text-neutral-500">Confira o endereço do link da loja.</p>
         </div>
       </div>
+      </>
     );
   }
 
@@ -375,9 +389,12 @@ export function Storefront({ slug }: { slug: string }) {
 
   if (!store || !settings) {
     return (
-      <div style={themeVars("cafe", "moria")} className="min-h-screen bg-[var(--bg)]">
-        <SkeletonStore />
-      </div>
+      <>
+        {splash}
+        <div style={themeVars("cafe", "moria")} className="min-h-screen bg-[var(--bg)]">
+          <SkeletonStore />
+        </div>
+      </>
     );
   }
 
@@ -512,6 +529,8 @@ export function Storefront({ slug }: { slug: string }) {
   ];
 
   return (
+    <>
+    {splash}
     <div
       style={vars}
       ref={rootRef}
@@ -1230,5 +1249,6 @@ export function Storefront({ slug }: { slug: string }) {
         onSent={() => showToast("Abrindo o WhatsApp…")}
       />
     </div>
+    </>
   );
 }

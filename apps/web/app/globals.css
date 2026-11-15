@@ -219,3 +219,166 @@
   70% { box-shadow: 0 0 0 16px transparent, 0 20px 40px -12px rgba(0, 0, 0, 0.35); }
   100% { box-shadow: 0 0 0 0 transparent, 0 20px 40px -12px rgba(0, 0, 0, 0.35); }
 }
+
+/* ---------------------------------------------------------------------------
+   Abertura da loja (components/store/SplashIntro.tsx)
+   --------------------------------------------------------------------------- */
+.moria-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.75rem;
+  background: radial-gradient(circle at 50% 45%, #4a2a16 0%, #2a170b 55%, #170c05 100%);
+  transition: opacity 0.65s ease, visibility 0.65s;
+  cursor: pointer;
+}
+.moria-splash.is-exit {
+  opacity: 0;
+  visibility: hidden;
+}
+.moria-splash-stage {
+  position: relative;
+  width: 260px;
+  height: 260px;
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.moria-splash.is-exit .moria-splash-stage {
+  transform: scale(1.18);
+}
+@media (max-width: 400px) {
+  .moria-splash-stage {
+    transform: scale(0.82);
+  }
+}
+.moria-splash-ring {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+.moria-splash-spin,
+.moria-splash-spin-rev {
+  transform-origin: 130px 130px;
+}
+/* Arco: começa vazio e se fecha (pathLength 100). */
+.moria-splash-arc {
+  stroke-dasharray: 100 100;
+  stroke-dashoffset: 0;
+}
+.moria-splash-disc {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 168px;
+  height: 168px;
+  margin: -84px 0 0 -84px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 50% 35%, #fbf1e2 0%, #f2e1cb 70%, #e6cfae 100%);
+  box-shadow: 0 0 0 1px rgba(255, 226, 179, 0.25), 0 0 60px -6px rgba(233, 151, 79, 0.55),
+    inset 0 -8px 20px rgba(120, 70, 30, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.moria-splash-logo {
+  width: 78%;
+  height: 78%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.moria-splash-logo.is-loaded {
+  opacity: 1;
+}
+.moria-splash-initial {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 4rem;
+  color: #4b2f1c;
+}
+.moria-splash-name {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  color: #f2e1cb;
+  padding-left: 0.45em;
+}
+.moria-splash-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--s);
+  height: var(--s);
+  margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  border-radius: 9999px;
+  background: #ffe2b3;
+  box-shadow: 0 0 8px 2px rgba(233, 151, 79, 0.9);
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .moria-splash.is-intro .moria-splash-arc {
+    animation: moria-arc 1.5s cubic-bezier(0.65, 0, 0.35, 1) both;
+  }
+  .moria-splash.is-intro .moria-splash-spin {
+    animation: moria-spin 2.2s cubic-bezier(0.45, 0, 0.25, 1) both;
+  }
+  .moria-splash .moria-splash-spin-rev {
+    animation: moria-spin-rev 3.2s linear infinite;
+  }
+  /* Carregando (visitas seguintes): o arco curto fica girando. */
+  .moria-splash.is-loader .moria-splash-arc {
+    stroke-dasharray: 28 72;
+  }
+  .moria-splash.is-loader .moria-splash-spin {
+    animation: moria-spin 1.1s linear infinite;
+  }
+  .moria-splash.is-intro .moria-splash-disc {
+    animation: moria-disc 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.75s both;
+  }
+  .moria-splash.is-intro .moria-splash-name {
+    animation: moria-name 0.9s ease 1.35s both;
+  }
+  .moria-splash.is-intro .moria-splash-ring {
+    animation: moria-flash 0.9s ease-out 1.4s both;
+  }
+  .moria-splash-spark {
+    animation: moria-spark 0.9s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  }
+}
+
+@keyframes moria-arc {
+  from { stroke-dashoffset: 100; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes moria-spin {
+  from { transform: rotate(-90deg); }
+  to { transform: rotate(270deg); }
+}
+@keyframes moria-spin-rev {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+@keyframes moria-disc {
+  from { opacity: 0; transform: scale(0.6); filter: blur(10px); }
+  to { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+@keyframes moria-name {
+  from { opacity: 0; letter-spacing: 0.9em; }
+  to { opacity: 0.9; letter-spacing: 0.45em; }
+}
+@keyframes moria-flash {
+  0% { filter: brightness(1); }
+  30% { filter: brightness(1.8) drop-shadow(0 0 18px rgba(255, 190, 120, 0.9)); }
+  100% { filter: brightness(1); }
+}
+@keyframes moria-spark {
+  0% { opacity: 0; transform: rotate(var(--a)) translateY(-112px) scale(1); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: rotate(var(--a)) translateY(calc(-112px - var(--d))) scale(0.3); }
+}
