@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Moriá Cerâmica",
     description: "Cerâmica artesanal, utilitária, feita à mão. Cada peça moldada com propósito.",
-    images: [{ url: "/brand/moria-logo.png", width: 1000, height: 1000 }],
+    images: [{ url: "/brand/moria-og.jpg", width: 1200, height: 630 }],
   },
 };
 

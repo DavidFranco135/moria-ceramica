@@ -5,7 +5,7 @@ import Link from "next/link";
 import { apiFetch, ApiError } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/format";
 import type { CartLine, OrderLine, PublicProduct, PublicStore, StoreSlide } from "@/lib/store";
-import { darkVariant, formatWhatsappDisplay, instagramEmbedUrl, priceLabel, themeVars, whatsappLink } from "@/lib/store";
+import { BRAND_LOGO, darkVariant, formatWhatsappDisplay, logoForTheme, instagramEmbedUrl, priceLabel, themeVars, whatsappLink } from "@/lib/store";
 import { focusStyle } from "@/lib/focus";
 import { matchesSearch } from "@/lib/search";
 import { trackStoreEvent, useVisitTracker } from "@/lib/visits";
@@ -612,10 +612,10 @@ export function Storefront({ slug }: { slug: string }) {
             {settings.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={imgSrc(settings.logo_url, IMG_WIDTH.thumb)}
+                src={imgSrc(logoForTheme(settings.logo_url, effectiveTheme === "moria-noite" || effectiveTheme === "dark"), IMG_WIDTH.thumb)}
                 alt={storeName}
                 // Logo inteira, no formato dela (redonda, larga ou quadrada).
-                className="fx-logo h-12 w-auto max-w-[170px] shrink-0 object-contain sm:h-14"
+                className="fx-logo h-12 w-auto max-w-[170px] shrink-0 object-contain sm:h-16 sm:max-w-[200px]"
               />
             ) : (
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent)] font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--accent-ink)] shadow-md">
@@ -623,7 +623,7 @@ export function Storefront({ slug }: { slug: string }) {
               </span>
             )}
             {/* Com logo, o nome escrito só aparece do tablet para cima (a logo já traz o nome). */}
-            <span className={`min-w-0 ${settings.logo_url ? "hidden sm:block" : ""}`}>
+            <span className={`min-w-0 ${settings.logo_url === BRAND_LOGO ? "hidden" : settings.logo_url ? "hidden sm:block" : ""}`}>
               <span className="block truncate font-[family-name:var(--font-display)] text-lg font-semibold leading-tight">
                 {storeName}
               </span>

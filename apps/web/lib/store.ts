@@ -109,6 +109,14 @@ export type CartLine = { id: string; qty: number; note: string };
 export const STORE_SLUG = process.env.NEXT_PUBLIC_STORE_SLUG || "moria-ceramica";
 
 // WhatsApp da Moriá Cerâmica (pode ser trocado em Minha Loja).
+// Logo oficial da Moriá (montanhas + nome), fundo transparente; a versão
+// "claro" (creme) é usada no modo escuro.
+export const BRAND_LOGO = "/brand/moria-logo-wide.png";
+export const BRAND_LOGO_LIGHT = "/brand/moria-logo-wide-claro.png";
+export function logoForTheme(url: string, dark: boolean): string {
+  return dark && url === BRAND_LOGO ? BRAND_LOGO_LIGHT : url;
+}
+
 export const DEFAULT_WHATSAPP = "5521984986236";
 
 type Accent = {

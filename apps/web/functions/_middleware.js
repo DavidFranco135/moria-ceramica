@@ -15,6 +15,8 @@ const DEFAULT_SLUG = "moria-ceramica";
 const STORE_ROUTES = { "/": DEFAULT_SLUG, "/loja": null, "/loja/": null, "/loja.html": null };
 // Página da loja usada no sitemap.
 const SITEMAP_BASE = "/";
+// Imagem da prévia da página da loja (logo em fundo creme, 1200×630).
+const STORE_SHARE_IMAGE = "/brand/moria-og.jpg";
 // ----------------------------------------------------------------------------
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,80}$/i;
@@ -123,7 +125,7 @@ function buildMeta(store, url) {
   return {
     title,
     description,
-    image: shareImage(s.logo_url, origin),
+    image: shareImage(STORE_SHARE_IMAGE || s.logo_url, origin),
     canonical: canonical.toString(),
     type: "website",
     ld,
