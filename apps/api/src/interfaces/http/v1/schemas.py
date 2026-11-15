@@ -747,6 +747,8 @@ class StoreCategory(BaseModel):
     # Enquadramento da foto principal (ponto de foco, 0-100; 50/50 = centro).
     cover_x: float = Field(default=50, ge=0, le=100)
     cover_y: float = Field(default=50, ge=0, le=100)
+    # Subcategoria: id da categoria principal a que pertence ("" = principal).
+    parent_id: str = Field(default="", max_length=40)
 
 
 class StoreSettings(BaseModel):
@@ -763,7 +765,7 @@ class StoreSettings(BaseModel):
     instagram: str = Field(default="moriaceramica.atelie", max_length=120)
     hours: str = Field(default="", max_length=300)
     address: str = Field(default="", max_length=300)
-    accent: str = Field(default="terracota", max_length=20)
+    accent: str = Field(default="oliva", max_length=20)
     theme: str = Field(default="moria", pattern="^(light|dark|moria)$")
     slides: list[StoreSlide] = Field(default_factory=list, max_length=10)
     highlights: list[StoreHighlight] = Field(default_factory=list, max_length=3)
@@ -781,6 +783,23 @@ class StoreSettings(BaseModel):
             if len(link) > 300 or not pattern.match(link):
                 raise ValueError(f"Link do Instagram inválido: {link[:80]}")
         return cleaned
+
+    @model_validator(mode="after")
+    def _only_two_category_levels(self) -> "StoreSettings":
+        """Menu em dois níveis: a categoria-mãe precisa existir e ser principal.
+
+        Vínculos inválidos (mãe apagada, a própria categoria, ou uma mãe que
+        também é subcategoria) são desfeitos em vez de recusar o salvamento.
+        """
+        by_id = {c.id: c for c in self.categories}
+        for c in self.categories:
+            parent = by_id.get(c.parent_id) if c.parent_id else None
+            if parent is None or parent.id == c.id:
+                c.parent_id = ""
+        for c in self.categories:
+            if c.parent_id and by_id[c.parent_id].parent_id:
+                c.parent_id = ""
+        return self
 
     hidden_product_ids: list[str] = Field(default_factory=list)
     # A ordem desta lista é a ordem dos destaques na vitrine.
@@ -870,6 +889,7 @@ class PublicCategory(BaseModel):
     cover_url: str = ""
     cover_x: float = 50
     cover_y: float = 50
+    parent_id: str = ""
 
 
 class PublicStoreSettings(BaseModel):

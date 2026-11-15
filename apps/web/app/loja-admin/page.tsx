@@ -34,7 +34,7 @@ const EMPTY: StoreSettings = {
   instagram: "moriaceramica.atelie",
   hours: "",
   address: "",
-  accent: "terracota",
+  accent: "oliva",
   theme: "moria",
   slides: [],
   highlights: [],
@@ -319,6 +319,10 @@ export default function LojaAdminPage() {
     update({ categories: settings.categories.map((c) => (c.id === id ? { ...c, name } : c)) });
   }
 
+  function setCategoryParent(id: string, parentId: string) {
+    update({ categories: settings.categories.map((c) => (c.id === id ? { ...c, parent_id: parentId } : c)) });
+  }
+
   function moveCategory(index: number, delta: number) {
     const target = index + delta;
     if (target < 0 || target >= settings.categories.length) return;
@@ -330,7 +334,12 @@ export default function LojaAdminPage() {
   function removeCategory(id: string) {
     const category = settings.categories.find((c) => c.id === id);
     if (category?.name.trim() && !window.confirm(`Apagar a categoria "${category.name}"? Os produtos não são apagados.`)) return;
-    update({ categories: settings.categories.filter((c) => c.id !== id) });
+    update({
+      categories: settings.categories
+        .filter((c) => c.id !== id)
+        // As subcategorias da categoria apagada voltam a ser principais.
+        .map((c) => (c.parent_id === id ? { ...c, parent_id: "" } : c)),
+    });
   }
 
   function toggleCategory(categoryId: string, productId: string) {
@@ -759,7 +768,7 @@ export default function LojaAdminPage() {
                 </div>
                 {settings.theme === "moria" && (
                   <p className="text-[11px] text-neutral-500">
-                    Fundo creme e textos no marrom da logo Moriá. A cor de destaque acima vale para botões e detalhes.
+                    Paleta da marca: fundo creme pêssego, textos marrom café e botões verde oliva (a cor de destaque acima vale só para os temas Claro e Escuro).
                   </p>
                 )}
               </div>
@@ -767,7 +776,7 @@ export default function LojaAdminPage() {
 
             <Card
               title="Categorias"
-              hint="Organize o catálogo da loja (ex.: Decoração, Chaveiros, Presentes). Marque os produtos de cada categoria logo abaixo, em “Produtos na loja”. Um produto pode estar em mais de uma."
+              hint="Organize o catálogo e o menu da loja (ex.: Canecas, Pratos, Presentes). Para criar um submenu, escolha em “Categoria principal” dentro de qual categoria ela fica (ex.: Xícaras dentro de Dia a dia). Marque os produtos de cada categoria logo abaixo, em “Produtos na loja”. Um produto pode estar em mais de uma."
             >
               {settings.categories.length === 0 ? (
                 <p className="text-sm text-neutral-500">Nenhuma categoria ainda.</p>
@@ -806,6 +815,23 @@ export default function LojaAdminPage() {
                             maxLength={60}
                             onChange={(e) => renameCategory(c.id, e.target.value)}
                           />
+                          <select
+                            aria-label="Categoria principal"
+                            className={`${input} w-auto min-w-0 basis-44`}
+                            value={c.parent_id ?? ""}
+                            // Quem já tem subcategorias não pode virar subcategoria (menu em 2 níveis).
+                            disabled={settings.categories.some((o) => o.parent_id === c.id)}
+                            onChange={(e) => setCategoryParent(c.id, e.target.value)}
+                          >
+                            <option value="">Categoria principal</option>
+                            {settings.categories
+                              .filter((o) => o.id !== c.id && !o.parent_id && o.name.trim())
+                              .map((o) => (
+                                <option key={o.id} value={o.id}>
+                                  Dentro de: {o.name}
+                                </option>
+                              ))}
+                          </select>
                           <span className="w-20 text-xs text-neutral-500">
                             {catProducts.length} produto(s)
                           </span>

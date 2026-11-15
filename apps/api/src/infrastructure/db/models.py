@@ -635,7 +635,9 @@ class StoreVisitDay(Base):
     day: Mapped[str] = mapped_column(String(10), primary_key=True)
     views: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     unique_visitors: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    whatsapp_clicks: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    whatsapp_clicks: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
 
 
 class StoreProductDay(Base):

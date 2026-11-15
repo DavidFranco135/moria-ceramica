@@ -212,7 +212,11 @@ def normalize_name(name: str | None) -> str:
 def pieces_by_name(db: Session, organization_id: UUID) -> dict[str, object]:
     """Peças salvas na Precificação, pelo nome (a mais recente vale)."""
     pieces: dict[str, object] = {}
-    quotes = [q for q in QuoteRepository(db).list_for_org(organization_id) if (q.piece_name or "").strip()]
+    quotes = [
+        q
+        for q in QuoteRepository(db).list_for_org(organization_id)
+        if (q.piece_name or "").strip()
+    ]
     for quote in sorted(quotes, key=lambda q: q.created_at):
         pieces[normalize_name(quote.piece_name)] = quote
     return pieces
@@ -308,7 +312,11 @@ def compute_product_cost(
             material_cost=material_cost,
             print_time_hours=print_time_hours,
             machine_cost_per_hour=machine_cost_per_hour,
-            energy_kwh=energy_kwh if energy_kwh is not None else product_energy_kwh(machine, print_time_hours),
+            energy_kwh=(
+                energy_kwh
+                if energy_kwh is not None
+                else product_energy_kwh(machine, print_time_hours)
+            ),
             labor_hours=labor_hours,
         ),
         _profile_values(profile),

@@ -154,12 +154,12 @@ def test_categories_are_saved_and_exposed_publicly(client: TestClient):
         headers=headers,
     )
     assert response.status_code == 200, response.text
-    assert response.json()["settings"]["categories"] == categories
+    assert response.json()["settings"]["categories"] == [{**c, "parent_id": ""} for c in categories]
 
     body = client.get(f"/api/v1/public/stores/{slug}").json()
     assert body["settings"]["categories"] == [
-        {"id": "deco", "name": "Decoração", "cover_url": "https://img/capa.jpg", "cover_x": 20, "cover_y": 75},
-        {"id": "brindes", "name": "Brindes", "cover_url": "", "cover_x": 50, "cover_y": 50},
+        {"id": "deco", "name": "Decoração", "cover_url": "https://img/capa.jpg", "cover_x": 20, "cover_y": 75, "parent_id": ""},
+        {"id": "brindes", "name": "Brindes", "cover_url": "", "cover_x": 50, "cover_y": 50, "parent_id": ""},
     ]
     by_name = {p["name"]: p["category_ids"] for p in body["products"]}
     assert by_name == {"Vaso": ["deco", "brindes"], "Chaveiro": ["brindes"]}
@@ -292,3 +292,34 @@ def test_store_reels_accept_only_instagram_links(client: TestClient):
 
     bad = client.put(url, json={"reels": ["https://evil.example/reel/abc"]}, headers=headers)
     assert bad.status_code == 422
+
+
+def test_store_subcategories_are_public_and_limited_to_two_levels(client: TestClient):
+    owner = register_user(client, organization_name="Menu Shop", email="menu@moria.io")
+    headers = auth_headers(owner["access_token"])
+    org = client.get("/api/v1/users/me", headers=headers).json()["organizations"][0]["organization"]
+    base = f"/api/v1/organizations/{org['id']}"
+    product = client.post(
+        f"{base}/products", json={"name": "Xícara", "manual_price": 50, "materials": []}, headers=headers
+    ).json()
+
+    saved = client.put(
+        f"{base}/store",
+        json={
+            "categories": [
+                {"id": "dia", "name": "Dia a dia", "product_ids": []},
+                {"id": "xic", "name": "Xícaras", "product_ids": [product["id"]], "parent_id": "dia"},
+                # Terceiro nível e mãe inexistente: viram categorias principais.
+                {"id": "neta", "name": "Neta", "product_ids": [], "parent_id": "xic"},
+                {"id": "orfa", "name": "Órfã", "product_ids": [], "parent_id": "nao-existe"},
+            ]
+        },
+        headers=headers,
+    )
+    assert saved.status_code == 200, saved.text
+    parents = {c["id"]: c["parent_id"] for c in saved.json()["settings"]["categories"]}
+    assert parents == {"dia": "", "xic": "dia", "neta": "", "orfa": ""}
+
+    public = client.get(f"/api/v1/public/stores/{org['slug']}").json()["settings"]["categories"]
+    # A principal aparece mesmo sem produto próprio, porque a subcategoria tem.
+    assert {c["id"]: c["parent_id"] for c in public} == {"dia": "", "xic": "dia"}

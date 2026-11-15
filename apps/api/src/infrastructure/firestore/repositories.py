@@ -589,7 +589,10 @@ class ProductMaterialRepository:
         with ThreadPoolExecutor(max_workers=min(16, len(product_ids))) as pool:
             fetched = list(pool.map(fetch, product_ids))
         return {
-            pid: [self.session.hydrate(ProductMaterial, s.id, s.to_dict(), s.reference) for s in snaps]
+            pid: [
+                self.session.hydrate(ProductMaterial, s.id, s.to_dict(), s.reference)
+                for s in snaps
+            ]
             for pid, snaps in fetched
         }
 

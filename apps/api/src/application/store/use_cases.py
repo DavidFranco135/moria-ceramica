@@ -146,6 +146,9 @@ def get_public_store(db: Session, *, slug: str) -> PublicStoreResponse:
     # Só categorias com algum produto visível — categoria vazia na vitrine
     # leva o cliente a uma lista sem nada.
     used = {cid for p in products for cid in p.category_ids}
+    # Uma categoria principal também aparece quando só as subcategorias dela têm produto.
+    used |= {c.parent_id for c in named_categories if c.parent_id and c.id in used}
+    named_ids = {c.id for c in named_categories}
     public_categories = [
         PublicCategory(
             id=c.id,
@@ -153,6 +156,7 @@ def get_public_store(db: Session, *, slug: str) -> PublicStoreResponse:
             cover_url=c.cover_url.strip(),
             cover_x=c.cover_x,
             cover_y=c.cover_y,
+            parent_id=c.parent_id if c.parent_id in named_ids else "",
         )
         for c in named_categories
         if c.id in used

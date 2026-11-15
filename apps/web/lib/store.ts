@@ -10,16 +10,26 @@ export type StoreCategory = {
   cover_url: string;
   cover_x?: number;
   cover_y?: number;
+  // Subcategoria: id da categoria principal ("" ou ausente = principal).
+  parent_id?: string;
 };
-export type PublicCategory = { id: string; name: string; cover_url: string; cover_x?: number; cover_y?: number };
+export type PublicCategory = {
+  id: string;
+  name: string;
+  cover_url: string;
+  cover_x?: number;
+  cover_y?: number;
+  parent_id?: string;
+};
 
-// "moria": tema da marca — creme e marrom da logo, com destaque terracota.
+// "moria": tema da marca — fundo creme pêssego, textos marrom café e botões
+// verde oliva, tirados da arte de capa da loja.
 export type StoreTheme = "light" | "dark" | "moria";
 
 export const THEME_OPTIONS: { key: StoreTheme; label: string }[] = [
   { key: "light", label: "Claro" },
   { key: "dark", label: "Escuro" },
-  { key: "moria", label: "Moriá – creme e terracota" },
+  { key: "moria", label: "Moriá – creme, café e oliva" },
 ];
 
 export type StoreSettings = {
@@ -104,6 +114,13 @@ export const ACCENTS: Record<string, Accent> = {
   // Paleta Moriá, tirada da logo e das fotos das peças. As cores de texto e
   // botão são versões mais escuras dos tons das peças (swatch), para manter
   // contraste sobre o fundo creme.
+  oliva: {
+    label: "Verde oliva",
+    color: "#535417",
+    soft: "#efedd9",
+    swatch: "#7d7a2e",
+    dark: { color: "#cfcd8f", ink: "#16160a" },
+  },
   terracota: {
     label: "Terracota",
     color: "#9c4f33",
@@ -125,7 +142,7 @@ export const ACCENTS: Record<string, Accent> = {
 export const THEMES = {
   light: { bg: "#faf8f5", surface: "#ffffff", ink: "#1c1917", muted: "#78716c", line: "#e7e5e4" },
   dark: { bg: "#0b0b10", surface: "#15151c", ink: "#f5f5f4", muted: "#a1a1aa", line: "#2a2a33" },
-  moria: { bg: "#fbf4ea", surface: "#fffdf9", ink: "#3d2e25", muted: "#8a7363", line: "#ead8c3" },
+  moria: { bg: "#f8ecdc", surface: "#fffaf3", ink: "#43280f", muted: "#76563a", line: "#e8d2b4" },
 } as const;
 
 function rgba(hex: string, alpha: number): string {
@@ -134,11 +151,12 @@ function rgba(hex: string, alpha: number): string {
 }
 
 export function themeVars(accent: string, theme: StoreTheme): React.CSSProperties {
-  const a = ACCENTS[accent] ?? ACCENTS.terracota;
+  // O tema da marca usa sempre o verde oliva da arte de capa.
+  const a = theme === "moria" ? ACCENTS.oliva : (ACCENTS[accent] ?? ACCENTS.oliva);
   const t = THEMES[theme] ?? THEMES.light;
   const isDark = theme === "dark";
   const color = isDark && a.dark ? a.dark.color : a.color;
-  const ink = isDark && a.dark ? a.dark.ink : "#ffffff";
+  const ink = isDark && a.dark ? a.dark.ink : "#fffaf0";
   return {
     "--bg": t.bg,
     "--surface": t.surface,

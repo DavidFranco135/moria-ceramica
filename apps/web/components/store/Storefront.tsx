@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { apiFetch, ApiError } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/format";
@@ -14,6 +14,7 @@ import { FeaturedSlider } from "./FeaturedSlider";
 import { SearchOverlay } from "./SearchOverlay";
 import { useStoreFx } from "./fx";
 import { HeroSlider } from "./HeroSlider";
+import { DesktopNav, MenuButton, MobileMenu, type NavCategory } from "./StoreNav";
 import { ProductCard } from "./ProductCard";
 import { ProductModal } from "./ProductModal";
 import {
@@ -63,71 +64,6 @@ function useStoredState<T>(key: string, initial: T): [T, (next: T | ((prev: T) =
   return [value, setValue];
 }
 
-function TabBar({
-  tab,
-  onChange,
-  catalogCount,
-  className = "",
-}: {
-  tab: number;
-  onChange: (index: number) => void;
-  catalogCount: number;
-  className?: string;
-}) {
-  const refs = useRef<(HTMLButtonElement | null)[]>([]);
-  const [pill, setPill] = useState({ left: 0, width: 0 });
-
-  useLayoutEffect(() => {
-    const measure = () => {
-      const el = refs.current[tab];
-      if (el) setPill({ left: el.offsetLeft, width: el.offsetWidth });
-    };
-    measure();
-    window.addEventListener("resize", measure);
-    // Fonts load after first paint and change the tab widths.
-    document.fonts?.ready.then(measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [tab]);
-
-  return (
-    <div
-      role="tablist"
-      className={`relative inline-flex rounded-full border border-[var(--line)] bg-[var(--surface-glass)] p-1 shadow-sm backdrop-blur ${className}`}
-    >
-      <span
-        aria-hidden
-        className="absolute bottom-1 top-1 rounded-full bg-[var(--accent)] shadow-md transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
-        style={{ left: pill.left, width: pill.width }}
-      />
-      {TABS.map((label, i) => (
-        <button
-          key={label}
-          ref={(el) => {
-            refs.current[i] = el;
-          }}
-          role="tab"
-          aria-selected={tab === i}
-          onClick={() => onChange(i)}
-          className={`relative z-10 flex-1 whitespace-nowrap rounded-full px-2 py-2 text-[12.5px] font-semibold transition-colors duration-300 min-[400px]:px-3.5 min-[400px]:text-[13px] sm:px-5 sm:text-sm ${
-            tab === i ? "text-[var(--accent-ink)]" : "text-[var(--muted)] hover:text-[var(--ink)]"
-          }`}
-        >
-          {label}
-          {i === 1 && catalogCount > 0 && (
-            <span
-              className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] ${
-                tab === i ? "bg-white/25" : "bg-[var(--accent-soft)] text-[var(--accent)]"
-              }`}
-            >
-              {catalogCount}
-            </span>
-          )}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 function SectionTitle({
   eyebrow,
   title,
@@ -156,7 +92,7 @@ function SectionTitle({
 
 function SkeletonStore() {
   return (
-    <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
+    <div className="mx-auto max-w-[1600px] space-y-8 px-4 py-8 sm:px-6">
       <div className="relative h-[52vh] overflow-hidden rounded-[28px] bg-[var(--line)]">
         <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
       </div>
@@ -201,6 +137,8 @@ export function Storefront({ slug }: { slug: string }) {
     extra: "",
   });
   const [cartOpen, setCartOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
   const [openProductId, setOpenProductId] = useState<string | null>(null);
   // Conta a abertura do produto (alimenta "Produtos mais vistos" em Minha Loja).
   useEffect(() => {
@@ -369,11 +307,15 @@ export function Storefront({ slug }: { slug: string }) {
 
   const filtered = useMemo(() => {
     if (!store) return [];
+    // Uma categoria principal mostra também os produtos das suas subcategorias.
+    const family = category
+      ? [category, ...store.settings.categories.filter((c) => c.parent_id === category).map((c) => c.id)]
+      : null;
     let list = store.products.filter(
       (p) =>
         matchesSearch(search, p.name, p.description) &&
         (!onlyAvailable || p.available) &&
-        (!category || p.category_ids.includes(category))
+        (!family || p.category_ids.some((id) => family.includes(id)))
     );
     const byRequest = (a: PublicProduct, b: PublicProduct) =>
       Number(a.price_on_request) - Number(b.price_on_request);
@@ -396,11 +338,11 @@ export function Storefront({ slug }: { slug: string }) {
   }
 
   const settings = store?.settings;
-  const vars = themeVars(settings?.accent ?? "terracota", settings?.theme ?? "moria");
+  const vars = themeVars(settings?.accent ?? "oliva", settings?.theme ?? "moria");
 
   if (!store || !settings) {
     return (
-      <div style={themeVars("terracota", "moria")} className="min-h-screen bg-[var(--bg)]">
+      <div style={themeVars("oliva", "moria")} className="min-h-screen bg-[var(--bg)]">
         <SkeletonStore />
       </div>
     );
@@ -441,8 +383,10 @@ export function Storefront({ slug }: { slug: string }) {
           .slice(0, 5)
           .map((p) => ({ url: p.photo_urls[0], title: p.name, subtitle: priceLabel(p) }));
 
-  const categories = settings.categories.map((c) => {
-    const items = store.products.filter((p) => p.category_ids.includes(c.id));
+  const allCategories = settings.categories.map((c) => {
+    // Conta os produtos da categoria e das suas subcategorias (sem repetir).
+    const family = [c.id, ...settings.categories.filter((o) => o.parent_id === c.id).map((o) => o.id)];
+    const items = store.products.filter((p) => p.category_ids.some((id) => family.includes(id)));
     // Foto principal escolhida pelo lojista; sem escolha, a primeira foto dos produtos.
     const chosen = c.cover_url || "";
     const fallback = items.find((p) => p.photo_urls.length > 0) ?? null;
@@ -454,7 +398,34 @@ export function Storefront({ slug }: { slug: string }) {
       : focusStyle(fallback?.photo_focus, coverUrl);
     return { ...c, count: items.length, coverUrl, coverStyle };
   });
-  const activeCategory = categories.find((c) => c.id === category) ?? null;
+  const knownIds = new Set(allCategories.map((c) => c.id));
+  const isTop = (c: { parent_id?: string }) => !c.parent_id || !knownIds.has(c.parent_id);
+  // Categorias principais (menu, página inicial e primeira linha de filtros).
+  const categories = allCategories.filter(isTop);
+  const childrenOf = (id: string) => allCategories.filter((c) => !isTop(c) && c.parent_id === id);
+  const navCategories: NavCategory[] = categories.map((c) => ({
+    id: c.id,
+    name: c.name,
+    count: c.count,
+    coverUrl: c.coverUrl,
+    coverStyle: c.coverStyle,
+    children: childrenOf(c.id).map((k) => ({
+      id: k.id,
+      name: k.name,
+      count: k.count,
+      coverUrl: k.coverUrl,
+      coverStyle: k.coverStyle,
+      children: [],
+    })),
+  }));
+  const activeCategory = allCategories.find((c) => c.id === category) ?? null;
+  // Categoria principal da categoria aberta (ela mesma, se for principal).
+  const activeTop = activeCategory
+    ? isTop(activeCategory)
+      ? activeCategory
+      : (categories.find((c) => c.id === activeCategory.parent_id) ?? null)
+    : null;
+  const activeSiblings = activeTop ? childrenOf(activeTop.id) : [];
 
   const openCategory = (id: string | null) => {
     setCategory(id);
@@ -504,11 +475,12 @@ export function Storefront({ slug }: { slug: string }) {
     <div
       style={vars}
       ref={rootRef}
-      className="store-fx min-h-screen bg-[var(--bg)] font-[family-name:var(--font-sans)] text-[var(--ink)] antialiased selection:bg-[var(--accent)] selection:text-[var(--accent-ink)]"
+      className="store-fx min-h-screen overflow-x-clip bg-[var(--bg)] font-[family-name:var(--font-sans)] text-[var(--ink)] antialiased selection:bg-[var(--accent)] selection:text-[var(--accent-ink)]"
     >
       <header className="fx-header sticky top-0 z-50 border-b border-[var(--line)] bg-[var(--bg-glass)] backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <button onClick={() => goTab(0)} className="flex min-w-0 items-center gap-3 text-left">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
+          <MenuButton onClick={() => setMenuOpen(true)} />
+          <button onClick={() => goTab(0)} className="flex min-w-0 flex-1 items-center gap-3 text-left md:flex-none">
             {settings.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -530,8 +502,6 @@ export function Storefront({ slug }: { slug: string }) {
               )}
             </span>
           </button>
-
-          <TabBar tab={tab} onChange={goTab} catalogCount={store.products.length} className="hidden md:inline-flex" />
 
           <div className="flex items-center gap-2">
             <button
@@ -570,16 +540,37 @@ export function Storefront({ slug }: { slug: string }) {
             </button>
           </div>
         </div>
-        <div className="px-4 pb-3 md:hidden">
-          <TabBar tab={tab} onChange={goTab} catalogCount={store.products.length} className="flex w-full" />
-        </div>
+        <DesktopNav
+          categories={navCategories}
+          tab={tab}
+          activeCategoryId={category}
+          activeTopId={activeTop?.id ?? null}
+          onTab={goTab}
+          onCategory={openCategory}
+        />
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 pb-32 pt-6 sm:px-6 sm:pt-8" {...swipe}>
+      <MobileMenu
+        open={menuOpen}
+        onClose={closeMenu}
+        storeName={storeName}
+        whatsappHref={waGeneral}
+        instagramHandle={instagramHandle}
+        categories={navCategories}
+        tab={tab}
+        activeCategoryId={category}
+        activeTopId={activeTop?.id ?? null}
+        onTab={goTab}
+        onCategory={openCategory}
+      />
+
+      <main className="mx-auto max-w-[1600px] px-4 pb-32 pt-6 sm:px-6 sm:pt-8 lg:px-10" {...swipe}>
         <div key={tab} className={dir >= 0 ? "animate-slide-in-right" : "animate-slide-in-left"}>
           {tab === 0 && (
             <div className="space-y-20 sm:space-y-28">
               <div className="space-y-10 sm:space-y-14">
+                {/* No computador a capa sai do container e vai de ponta a ponta. */}
+                <div className="lg:relative lg:left-1/2 lg:-mt-8 lg:w-screen lg:-translate-x-1/2">
                 <HeroSlider
                   slides={slides}
                   storeName={storeName}
@@ -587,6 +578,7 @@ export function Storefront({ slug }: { slug: string }) {
                   whatsappHref={waGeneral}
                   onCatalog={() => openCategory(null)}
                 />
+                </div>
 
                 <button
                   onClick={openSearch}
@@ -796,7 +788,7 @@ export function Storefront({ slug }: { slug: string }) {
                   onTouchEnd={(e) => e.stopPropagation()}
                 >
                   {[{ id: null, name: "Todas", count: store.products.length }, ...categories].map((c) => {
-                    const active = category === c.id;
+                    const active = (activeTop?.id ?? null) === c.id;
                     return (
                       <button
                         key={c.id ?? "all"}
@@ -810,6 +802,33 @@ export function Storefront({ slug }: { slug: string }) {
                       >
                         {c.name}
                         <span className={`text-xs ${active ? "opacity-80" : "opacity-60"}`}>{c.count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {activeTop && activeSiblings.length > 0 && (
+                <div
+                  key={activeTop.id}
+                  className="-mx-4 flex animate-fade-up gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0 [&::-webkit-scrollbar]:hidden"
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onTouchEnd={(e) => e.stopPropagation()}
+                >
+                  {[{ id: activeTop.id, name: `Tudo em ${activeTop.name}`, count: activeTop.count }, ...activeSiblings].map((c) => {
+                    const active = category === c.id;
+                    return (
+                      <button
+                        key={c.id}
+                        onClick={() => setCategory(c.id)}
+                        aria-pressed={active}
+                        className={`inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-[13px] font-medium transition ${
+                          active
+                            ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]"
+                            : "border-transparent text-[var(--muted)] hover:text-[var(--ink)]"
+                        }`}
+                      >
+                        {c.name}
+                        <span className="text-xs opacity-60">{c.count}</span>
                       </button>
                     );
                   })}
@@ -872,7 +891,7 @@ export function Storefront({ slug }: { slug: string }) {
                   Nenhum produto encontrado.
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+                <div key={category ?? "all"} className="grid animate-fade-up grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
                   {filtered.map((p, i) => (
                     <div
                       key={p.id}
@@ -1021,7 +1040,7 @@ export function Storefront({ slug }: { slug: string }) {
       </main>
 
       <footer className="border-t border-[var(--line)] bg-[var(--surface)] pb-28 text-sm text-[var(--muted)]">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
+        <div className="mx-auto grid max-w-[1600px] gap-10 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-10">
           <div className="space-y-3">
             <p className="font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--ink)]">{storeName}</p>
             {settings.tagline && <p className="leading-relaxed">{settings.tagline}</p>}
@@ -1078,7 +1097,7 @@ export function Storefront({ slug }: { slug: string }) {
         </div>
 
         <div className="border-t border-[var(--line)]">
-          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-5 text-xs sm:flex-row sm:px-6">
+          <div className="mx-auto flex max-w-[1600px] flex-col items-center justify-between gap-2 px-4 py-5 text-xs sm:flex-row sm:px-6 lg:px-10">
             <p>
               © {new Date().getFullYear()} {storeName}. Todos os direitos reservados.
             </p>
