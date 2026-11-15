@@ -7,11 +7,10 @@ echo  Moria Ceramica - publicar a API no Firebase
 echo ============================================================
 echo.
 
-if not exist apps\api\main.py (
-  if exist codigo.zip (
-    echo Extraindo o codigo do projeto...
-    tar -xf codigo.zip
-  )
+rem Sempre usa a versao mais recente do codigo.zip desta pasta.
+if exist codigo.zip (
+  echo Atualizando o codigo do projeto...
+  tar -xf codigo.zip
 )
 if not exist apps\api\main.py (
   echo [ERRO] Nao encontrei a pasta apps\api ao lado deste arquivo.
