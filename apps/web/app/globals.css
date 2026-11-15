@@ -591,3 +591,13 @@
     transition: opacity 0.5s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
+
+/* Cabeçalho com a parede de tijolos, menos esmaecida que o fundo da página:
+   véu creme por cima (72%) para o menu e a logo continuarem legíveis. */
+.store-fx .fx-header {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--surface) 72%, transparent), color-mix(in srgb, var(--surface) 72%, transparent)),
+    url("/brand/textura-tijolos-cor.webp");
+  background-size: auto, 760px 319px;
+  background-position: center, center top;
+}
