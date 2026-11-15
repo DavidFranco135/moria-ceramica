@@ -5,7 +5,7 @@
 // reaproveitados) e nunca apaga nada; pode ser usado mais de uma vez.
 import { useState } from "react";
 import { apiFetch, ApiError } from "@/lib/api-client";
-import { CATALOGO_2026, CATALOGO_INFO, normalizeName } from "@/lib/catalogo-2026";
+import { CATALOGO_2026, CATALOGO_INFO, catalogPhotoUrl, normalizeName } from "@/lib/catalogo-2026";
 import type { StoreAdminResponse, StoreCategory, StoreSettings } from "@/lib/store";
 import type { Product } from "@/lib/types";
 
@@ -19,6 +19,29 @@ type Props = {
   onDone: (message: string) => void;
 };
 
+const ITEMS = CATALOGO_2026.flatMap((c) => c.items);
+
+// Quanto do catálogo ainda falta na loja: peças não cadastradas, peças do
+// catálogo ainda sem foto e categorias/subcategorias que faltam. Quando tudo
+// é zero, o quadro some de Minha Loja.
+export function catalogPending(settings: StoreSettings, products: Product[]) {
+  const byName = new Map(products.map((p) => [normalizeName(p.name), p]));
+  const missing = ITEMS.filter((i) => !byName.has(normalizeName(i.name))).length;
+  const noPhoto = ITEMS.filter((i) => {
+    const p = byName.get(normalizeName(i.name));
+    return p && (i.photos?.length ?? 0) > 0 && p.photo_urls.length === 0;
+  }).length;
+  const cats = new Map(settings.categories.map((c) => [normalizeName(c.name), c]));
+  const missingCats = CATALOGO_2026.filter((c) => {
+    const cat = cats.get(normalizeName(c.name));
+    if (!cat) return true;
+    if (!c.parent) return false;
+    const parent = cats.get(normalizeName(c.parent));
+    return !parent || cat.parent_id !== parent.id;
+  }).length;
+  return { missing, noPhoto, missingCats, total: missing + noPhoto + missingCats };
+}
+
 function newCategoryId() {
   return `cat-${Math.random().toString(36).slice(2, 10)}`;
 }
@@ -28,16 +51,19 @@ export function CatalogImport({ orgPath, accessToken, settings, products, dirty,
   const [progress, setProgress] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const total = CATALOGO_2026.reduce((n, c) => n + c.items.length, 0);
-  const existingNames = new Set(products.map((p) => normalizeName(p.name)));
-  const missing = CATALOGO_2026.flatMap((c) => c.items).filter((i) => !existingNames.has(normalizeName(i.name))).length;
+  const total = ITEMS.length;
+  const { missing, noPhoto } = catalogPending(settings, products);
 
   async function run() {
     if (dirty) {
       setError("Salve as alterações de Minha Loja antes de importar.");
       return;
     }
-    if (!window.confirm(`Importar o catálogo 2026? Serão criados ${missing} produto(s) e as categorias que faltam. Nada será apagado.`)) {
+    if (
+      !window.confirm(
+        `Importar o catálogo 2026? Serão criados ${missing} produto(s), colocadas fotos em ${noPhoto} peça(s) já cadastrada(s) sem foto e criadas as categorias que faltam. Nada será apagado.`
+      )
+    ) {
       return;
     }
     setRunning(true);
@@ -45,11 +71,27 @@ export function CatalogImport({ orgPath, accessToken, settings, products, dirty,
     try {
       // 1) Produtos que faltam.
       const byName = new Map(products.map((p) => [normalizeName(p.name), p.id]));
-      const items = CATALOGO_2026.flatMap((c) => c.items);
+      const photoless = new Set(products.filter((p) => p.photo_urls.length === 0).map((p) => p.id));
+      const items = ITEMS;
       let created = 0;
+      let photosAdded = 0;
       for (const item of items) {
         const key = normalizeName(item.name);
-        if (byName.has(key)) continue;
+        const photoUrls = (item.photos ?? []).map(catalogPhotoUrl);
+        const existingId = byName.get(key);
+        if (existingId) {
+          // Já cadastrada: só coloca as fotos do catálogo se ela não tiver nenhuma.
+          if (photoless.has(existingId) && photoUrls.length > 0) {
+            setProgress(`Colocando fotos: ${item.name}`);
+            await apiFetch<Product>(`${orgPath}/products/${existingId}`, {
+              method: "PATCH",
+              accessToken,
+              body: JSON.stringify({ photo_urls: photoUrls }),
+            });
+            photosAdded += 1;
+          }
+          continue;
+        }
         setProgress(`Criando ${created + 1} de ${missing}: ${item.name}`);
         const product = await apiFetch<Product>(`${orgPath}/products`, {
           method: "POST",
@@ -59,6 +101,7 @@ export function CatalogImport({ orgPath, accessToken, settings, products, dirty,
             description: item.description ?? null,
             manual_price: item.price ?? 0,
             size: item.size ?? null,
+            photo_urls: photoUrls,
             stock_quantity: null,
             materials: [],
             publish_in_store: true,
@@ -122,7 +165,7 @@ export function CatalogImport({ orgPath, accessToken, settings, products, dirty,
       const subOk = saved.settings.categories.some((c) => c.parent_id);
       setProgress("");
       onDone(
-        `Catálogo importado: ${created} produto(s) criado(s), ${categories.length} categorias.` +
+        `Catálogo importado: ${created} produto(s) criado(s), fotos colocadas em ${photosAdded} já existente(s), ${categories.length} categorias.` +
           (subOk ? "" : " Atenção: a API publicada ainda não guarda subcategorias — rode o PUBLICAR-API.bat e importe de novo.")
       );
     } catch (err) {
@@ -138,14 +181,16 @@ export function CatalogImport({ orgPath, accessToken, settings, products, dirty,
       <p className="text-sm text-neutral-400">
         {total} peças em {CATALOGO_2026.length} categorias (Linha Café, Mesa Posta, Para Servir, Linha Cozinha, Decoração,
         Linha Infantil, Presentes, Personalização e Projetos Especiais), com preços e descrições.{" "}
-        {missing === 0 ? "Todas já estão cadastradas." : `${missing} ainda não estão cadastradas.`}
+        {missing > 0 ? `${missing} ainda não estão cadastradas. ` : ""}
+        {noPhoto > 0 ? `${noPhoto} já cadastrada(s) ainda sem foto. ` : ""}
+        Este quadro some sozinho quando tudo estiver importado.
       </p>
       <button
         onClick={run}
         disabled={running}
         className="rounded bg-emerald-700 px-4 py-2 text-sm font-medium hover:bg-emerald-600 disabled:opacity-50"
       >
-        {running ? "Importando…" : missing === 0 ? "Reorganizar categorias do catálogo" : "Importar catálogo 2026"}
+        {running ? "Importando…" : "Importar catálogo 2026"}
       </button>
       {progress && <p className="text-xs text-neutral-500">{progress}</p>}
       {error && <p className="rounded bg-red-950 p-2 text-sm text-red-300">{error}</p>}

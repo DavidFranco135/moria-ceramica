@@ -24,7 +24,7 @@ import { IMG_WIDTH, imgSrc } from "@/lib/img";
 import { focusFor, focusStyle } from "@/lib/focus";
 import { PhotoFramer } from "@/components/PhotoFramer";
 import { VisitStats } from "@/components/store/VisitStats";
-import { CatalogImport } from "@/components/CatalogImport";
+import { CatalogImport, catalogPending } from "@/components/CatalogImport";
 
 const EMPTY: StoreSettings = {
   display_name: "",
@@ -519,10 +519,10 @@ export default function LojaAdminPage() {
             {accessToken && currentOrganizationId && (
               <VisitStats orgPath={orgPath} accessToken={accessToken} />
             )}
-            {accessToken && (
+            {accessToken && catalogPending(settings, products).total > 0 && (
               <Card
                 title="Catálogo de Peças 2026"
-                hint="Cadastra de uma vez as categorias, subcategorias e produtos do catálogo, com preços e descrições. As fotos você adiciona depois em cada produto."
+                hint="Cadastra de uma vez as categorias, subcategorias e produtos do catálogo, com preços, descrições e fotos."
               >
                 <CatalogImport
                   orgPath={orgPath}
