@@ -6,7 +6,7 @@
 import { useState } from "react";
 import { apiFetch, ApiError } from "@/lib/api-client";
 import { CATALOGO_2026, CATALOGO_INFO, catalogPhotoUrl, normalizeName } from "@/lib/catalogo-2026";
-import type { StoreAdminResponse, StoreCategory, StoreSettings } from "@/lib/store";
+import { refreshPublicStoreCache, type StoreAdminResponse, type StoreCategory, type StoreSettings } from "@/lib/store";
 import type { Product } from "@/lib/types";
 
 type Props = {
@@ -162,6 +162,8 @@ export function CatalogImport({ orgPath, accessToken, settings, products, dirty,
         accessToken,
         body: JSON.stringify(body),
       });
+      // A loja pública mostra as novidades na hora, sem esperar o cache.
+      refreshPublicStoreCache(saved.slug);
       const subOk = saved.settings.categories.some((c) => c.parent_id);
       setProgress("");
       onDone(
