@@ -765,7 +765,7 @@ class StoreSettings(BaseModel):
     instagram: str = Field(default="moriaceramica.atelie", max_length=120)
     hours: str = Field(default="", max_length=300)
     address: str = Field(default="", max_length=300)
-    accent: str = Field(default="oliva", max_length=20)
+    accent: str = Field(default="cafe", max_length=20)
     theme: str = Field(default="moria", pattern="^(light|dark|moria)$")
     slides: list[StoreSlide] = Field(default_factory=list, max_length=10)
     highlights: list[StoreHighlight] = Field(default_factory=list, max_length=3)

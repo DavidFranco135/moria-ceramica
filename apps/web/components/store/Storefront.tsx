@@ -338,11 +338,11 @@ export function Storefront({ slug }: { slug: string }) {
   }
 
   const settings = store?.settings;
-  const vars = themeVars(settings?.accent ?? "oliva", settings?.theme ?? "moria");
+  const vars = themeVars(settings?.accent ?? "cafe", settings?.theme ?? "moria");
 
   if (!store || !settings) {
     return (
-      <div style={themeVars("oliva", "moria")} className="min-h-screen bg-[var(--bg)]">
+      <div style={themeVars("cafe", "moria")} className="min-h-screen bg-[var(--bg)]">
         <SkeletonStore />
       </div>
     );
@@ -477,7 +477,7 @@ export function Storefront({ slug }: { slug: string }) {
       ref={rootRef}
       className="store-fx min-h-screen overflow-x-clip bg-[var(--bg)] font-[family-name:var(--font-sans)] text-[var(--ink)] antialiased selection:bg-[var(--accent)] selection:text-[var(--accent-ink)]"
     >
-      <header className="fx-header sticky top-0 z-50 border-b border-[var(--line)] bg-[var(--bg-glass)] backdrop-blur-xl">
+      <header className="fx-header sticky top-0 z-50 border-b border-[var(--line)] bg-[var(--surface-glass)] backdrop-blur-xl">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
           <MenuButton onClick={() => setMenuOpen(true)} />
           <button onClick={() => goTab(0)} className="flex min-w-0 flex-1 items-center gap-3 text-left md:flex-none">
@@ -1041,26 +1041,26 @@ export function Storefront({ slug }: { slug: string }) {
         </div>
       </main>
 
-      <footer className="border-t border-[var(--line)] bg-[var(--surface)] pb-28 text-sm text-[var(--muted)]">
+      <footer className="border-t border-[var(--footer-line)] bg-[var(--footer-bg)] pb-28 text-sm text-[var(--footer-muted)]">
         <div className="mx-auto grid max-w-[1600px] gap-10 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-10">
           <div className="space-y-3">
-            <p className="font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--ink)]">{storeName}</p>
+            <p className="font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--footer-ink)]">{storeName}</p>
             {settings.tagline && <p className="leading-relaxed">{settings.tagline}</p>}
             <p className="leading-relaxed">Cada peça é feita à mão: pequenas variações de cor e forma fazem parte dela.</p>
           </div>
 
           <nav aria-label="Navegação" className="space-y-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--ink)]">Loja</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--footer-ink)]">Loja</p>
             <ul className="space-y-2">
               {TABS.map((label, i) => (
                 <li key={label}>
-                  <button onClick={() => goTab(i)} className="transition hover:text-[var(--accent)]">
+                  <button onClick={() => goTab(i)} className="transition hover:text-[var(--footer-ink)] hover:underline underline-offset-4">
                     {label}
                   </button>
                 </li>
               ))}
               <li>
-                <a href={waCustom} target="_blank" rel="noopener noreferrer" className="transition hover:text-[var(--accent)]">
+                <a href={waCustom} target="_blank" rel="noopener noreferrer" className="transition hover:text-[var(--footer-ink)] hover:underline underline-offset-4">
                   Peças personalizadas
                 </a>
               </li>
@@ -1068,17 +1068,17 @@ export function Storefront({ slug }: { slug: string }) {
           </nav>
 
           <div className="space-y-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--ink)]">Atendimento</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--footer-ink)]">Atendimento</p>
             <ul className="space-y-2">
               <li>
-                <a href={waGeneral} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 transition hover:text-[var(--accent)]">
+                <a href={waGeneral} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 transition hover:text-[var(--footer-ink)] hover:underline underline-offset-4">
                   <IconWhatsapp className="h-4 w-4" />
                   {formatWhatsappDisplay(settings.whatsapp)}
                 </a>
               </li>
               {instagramHandle && (
                 <li>
-                  <a href={`https://instagram.com/${instagramHandle}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 transition hover:text-[var(--accent)]">
+                  <a href={`https://instagram.com/${instagramHandle}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 transition hover:text-[var(--footer-ink)] hover:underline underline-offset-4">
                     <IconInstagram className="h-4 w-4" />@{instagramHandle}
                   </a>
                 </li>
@@ -1089,7 +1089,7 @@ export function Storefront({ slug }: { slug: string }) {
           </div>
 
           <div className="space-y-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--ink)]">Compra e entrega</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--footer-ink)]">Compra e entrega</p>
             <ul className="space-y-2 leading-relaxed">
               <li>Pedido enviado pelo WhatsApp, sem cadastro.</li>
               <li>Produção em até 60 dias úteis, conforme a quantidade de peças e os períodos em andamento.</li>
@@ -1099,7 +1099,7 @@ export function Storefront({ slug }: { slug: string }) {
           </div>
         </div>
 
-        <div className="border-t border-[var(--line)]">
+        <div className="border-t border-[var(--footer-line)]">
           <div className="mx-auto flex max-w-[1600px] flex-col items-center justify-between gap-2 px-4 py-5 text-xs sm:flex-row sm:px-6 lg:px-10">
             <p>
               © {new Date().getFullYear()} {storeName}. Todos os direitos reservados.

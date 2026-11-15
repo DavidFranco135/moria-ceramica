@@ -22,14 +22,14 @@ export type PublicCategory = {
   parent_id?: string;
 };
 
-// "moria": tema da marca — fundo creme pêssego, textos marrom café e botões
-// verde oliva, tirados da arte de capa da loja.
+// "moria": tema da marca — fundo areia, cabeçalho e cards creme, textos e
+// botões café e rodapé café com letras creme (paleta da loja Moriá).
 export type StoreTheme = "light" | "dark" | "moria";
 
 export const THEME_OPTIONS: { key: StoreTheme; label: string }[] = [
   { key: "light", label: "Claro" },
   { key: "dark", label: "Escuro" },
-  { key: "moria", label: "Moriá – creme, café e oliva" },
+  { key: "moria", label: "Moriá – areia e café" },
 ];
 
 export type StoreSettings = {
@@ -114,6 +114,13 @@ export const ACCENTS: Record<string, Accent> = {
   // Paleta Moriá, tirada da logo e das fotos das peças. As cores de texto e
   // botão são versões mais escuras dos tons das peças (swatch), para manter
   // contraste sobre o fundo creme.
+  cafe: {
+    label: "Café",
+    color: "#4c2d18",
+    soft: "#e4cba7",
+    swatch: "#4c2d18",
+    dark: { color: "#e6c9a3", ink: "#24150b" },
+  },
   oliva: {
     label: "Verde oliva",
     color: "#535417",
@@ -142,7 +149,7 @@ export const ACCENTS: Record<string, Accent> = {
 export const THEMES = {
   light: { bg: "#faf8f5", surface: "#ffffff", ink: "#1c1917", muted: "#78716c", line: "#e7e5e4" },
   dark: { bg: "#0b0b10", surface: "#15151c", ink: "#f5f5f4", muted: "#a1a1aa", line: "#2a2a33" },
-  moria: { bg: "#f8ecdc", surface: "#fffaf3", ink: "#43280f", muted: "#76563a", line: "#e8d2b4" },
+  moria: { bg: "#ebd7bb", surface: "#f4e5d0", ink: "#4b2f1c", muted: "#754d40", line: "#d9bf9b" },
 } as const;
 
 function rgba(hex: string, alpha: number): string {
@@ -151,12 +158,12 @@ function rgba(hex: string, alpha: number): string {
 }
 
 export function themeVars(accent: string, theme: StoreTheme): React.CSSProperties {
-  // O tema da marca usa sempre o verde oliva da arte de capa.
-  const a = theme === "moria" ? ACCENTS.oliva : (ACCENTS[accent] ?? ACCENTS.oliva);
+  // O tema da marca usa sempre o café da paleta Moriá.
+  const a = theme === "moria" ? ACCENTS.cafe : (ACCENTS[accent] ?? ACCENTS.cafe);
   const t = THEMES[theme] ?? THEMES.light;
   const isDark = theme === "dark";
   const color = isDark && a.dark ? a.dark.color : a.color;
-  const ink = isDark && a.dark ? a.dark.ink : "#fffaf0";
+  const ink = isDark && a.dark ? a.dark.ink : theme === "moria" ? "#f2e1cb" : "#fffaf0";
   return {
     "--bg": t.bg,
     "--surface": t.surface,
@@ -170,6 +177,11 @@ export function themeVars(accent: string, theme: StoreTheme): React.CSSPropertie
     "--accent-ring": rgba(color, 0.22),
     "--accent-soft":
       theme === "dark" ? "rgba(255,255,255,0.06)" : a.soft,
+    // Rodapé: no tema Moriá é café com letras creme; nos outros, segue a página.
+    "--footer-bg": theme === "moria" ? "#4c2d18" : t.surface,
+    "--footer-ink": theme === "moria" ? "#f2e1cb" : t.ink,
+    "--footer-muted": theme === "moria" ? "#e0c9a6" : t.muted,
+    "--footer-line": theme === "moria" ? "rgba(242,225,203,0.18)" : t.line,
   } as React.CSSProperties;
 }
 

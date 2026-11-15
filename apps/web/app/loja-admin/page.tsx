@@ -35,7 +35,7 @@ const EMPTY: StoreSettings = {
   instagram: "moriaceramica.atelie",
   hours: "",
   address: "",
-  accent: "oliva",
+  accent: "cafe",
   theme: "moria",
   slides: [],
   highlights: [],
@@ -789,7 +789,7 @@ export default function LojaAdminPage() {
                 </div>
                 {settings.theme === "moria" && (
                   <p className="text-[11px] text-neutral-500">
-                    Paleta da marca: fundo creme pêssego, textos marrom café e botões verde oliva (a cor de destaque acima vale só para os temas Claro e Escuro).
+                    Paleta da marca: fundo areia, cabeçalho e cards creme, textos e botões café, rodapé café (a cor de destaque acima vale só para os temas Claro e Escuro).
                   </p>
                 )}
               </div>
