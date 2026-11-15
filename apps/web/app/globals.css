@@ -222,6 +222,8 @@
 
 /* ---------------------------------------------------------------------------
    Abertura da loja (components/store/SplashIntro.tsx)
+   Só transform e opacity nas animações: rodam na placa de vídeo, sem travar
+   enquanto a loja é montada por baixo.
    --------------------------------------------------------------------------- */
 .moria-splash {
   position: fixed;
@@ -233,7 +235,7 @@
   justify-content: center;
   gap: 1.75rem;
   background: radial-gradient(circle at 50% 45%, #4a2a16 0%, #2a170b 55%, #170c05 100%);
-  transition: opacity 0.65s ease, visibility 0.65s;
+  transition: opacity 0.6s ease, visibility 0.6s;
   cursor: pointer;
 }
 .moria-splash.is-exit {
@@ -244,30 +246,77 @@
   position: relative;
   width: 260px;
   height: 260px;
-  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .moria-splash.is-exit .moria-splash-stage {
-  transform: scale(1.18);
+  transform: scale(1.15);
 }
 @media (max-width: 400px) {
-  .moria-splash-stage {
-    transform: scale(0.82);
-  }
+  .moria-splash-stage { transform: scale(0.82); }
+  .moria-splash.is-exit .moria-splash-stage { transform: scale(0.95); }
 }
-.moria-splash-ring {
+
+/* Camadas do anel (todas do mesmo tamanho, centradas) */
+.ms-ring, .ms-spin, .ms-full, .ms-arc, .ms-solid, .ms-track, .ms-thin, .ms-halo {
   position: absolute;
   inset: 0;
-  overflow: visible;
+  border-radius: 9999px;
 }
-.moria-splash-spin,
-.moria-splash-spin-rev {
-  transform-origin: 130px 130px;
+.ms-ring { inset: 18px; }
+/* recorte em anel: só a borda de ~4 px aparece */
+.ms-arc, .ms-solid, .ms-track, .ms-thin {
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4.5px), #000 calc(100% - 3.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4.5px), #000 calc(100% - 3.5px));
 }
-/* Arco: começa vazio e se fecha (pathLength 100). */
-.moria-splash-arc {
-  stroke-dasharray: 100 100;
-  stroke-dashoffset: 0;
+.ms-track { background: rgba(242, 225, 203, 0.09); }
+.ms-thin {
+  inset: -12px;
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 1.5px), #000 calc(100% - 1px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 1.5px), #000 calc(100% - 1px));
+  background: conic-gradient(rgba(255, 226, 179, 0.55) 0 18%, transparent 18% 50%, rgba(255, 226, 179, 0.3) 50% 60%, transparent 60%);
+  will-change: transform;
 }
+/* cometa: cauda que esmaece até a cabeça brilhante (no topo) */
+.ms-arc {
+  background: conic-gradient(
+    transparent 0deg,
+    transparent 70deg,
+    rgba(184, 84, 31, 0.15) 150deg,
+    #b8541f 250deg,
+    #e9974f 320deg,
+    #ffe2b3 357deg,
+    transparent 360deg
+  );
+}
+.ms-glow {
+  filter: blur(7px);
+  opacity: 0.95;
+  transform: scale(1.02);
+}
+.ms-spin { will-change: transform; }
+.ms-head {
+  position: absolute;
+  left: 50%;
+  top: -1px;
+  width: 10px;
+  height: 10px;
+  margin-left: -7px;
+  border-radius: 9999px;
+  background: #fff3df;
+  box-shadow: 0 0 10px 4px rgba(255, 190, 120, 0.95), 0 0 24px 8px rgba(233, 151, 79, 0.55);
+}
+/* anel completo que acende no fim */
+.ms-full { opacity: 0; will-change: opacity; }
+.ms-solid {
+  background: conic-gradient(#ffe2b3, #e9974f 25%, #b8541f 50%, #e9974f 75%, #ffe2b3);
+}
+.ms-halo {
+  inset: -30px;
+  background: radial-gradient(circle, rgba(255, 200, 140, 0.55) 0%, rgba(233, 151, 79, 0.25) 35%, transparent 65%);
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
 .moria-splash-disc {
   position: absolute;
   left: 50%;
@@ -292,9 +341,7 @@
   opacity: 0;
   transition: opacity 0.4s ease;
 }
-.moria-splash-logo.is-loaded {
-  opacity: 1;
-}
+.moria-splash-logo.is-loaded { opacity: 1; }
 .moria-splash-initial {
   font-family: var(--font-display), Georgia, serif;
   font-size: 4rem;
@@ -307,6 +354,7 @@
   text-transform: uppercase;
   color: #f2e1cb;
   padding-left: 0.45em;
+  opacity: 0.9;
 }
 .moria-splash-spark {
   position: absolute;
@@ -322,60 +370,50 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .moria-splash.is-intro .moria-splash-arc {
-    animation: moria-arc 1.5s cubic-bezier(0.65, 0, 0.35, 1) both;
+  /* abertura completa */
+  .moria-splash.is-intro .ms-spin {
+    animation: ms-spin-in 1.55s cubic-bezier(0.55, 0, 0.25, 1) both, ms-fade-out 0.35s ease 1.4s both;
   }
-  .moria-splash.is-intro .moria-splash-spin {
-    animation: moria-spin 2.2s cubic-bezier(0.45, 0, 0.25, 1) both;
-  }
-  .moria-splash .moria-splash-spin-rev {
-    animation: moria-spin-rev 3.2s linear infinite;
-  }
-  /* Carregando (visitas seguintes): o arco curto fica girando. */
-  .moria-splash.is-loader .moria-splash-arc {
-    stroke-dasharray: 28 72;
-  }
-  .moria-splash.is-loader .moria-splash-spin {
-    animation: moria-spin 1.1s linear infinite;
-  }
-  .moria-splash.is-intro .moria-splash-disc {
-    animation: moria-disc 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.75s both;
-  }
-  .moria-splash.is-intro .moria-splash-name {
-    animation: moria-name 0.9s ease 1.35s both;
-  }
-  .moria-splash.is-intro .moria-splash-ring {
-    animation: moria-flash 0.9s ease-out 1.4s both;
-  }
-  .moria-splash-spark {
-    animation: moria-spark 0.9s cubic-bezier(0.2, 0.7, 0.3, 1) both;
-  }
+  .moria-splash.is-intro .ms-full { animation: ms-fade-in 0.35s ease 1.35s both; }
+  .moria-splash.is-intro .ms-halo { animation: ms-flash 0.9s ease-out 1.35s both; }
+  .moria-splash.is-intro .moria-splash-disc { animation: ms-disc 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.6s both; }
+  .moria-splash.is-intro .moria-splash-name { animation: ms-name 0.8s ease 1.3s both; }
+  .moria-splash-spark { animation: moria-spark 0.9s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+  .moria-splash .ms-thin { animation: ms-rev 3.2s linear infinite; }
+  /* carregando (visitas seguintes): o cometa fica girando */
+  .moria-splash.is-loader .ms-spin { animation: ms-loop 1s linear infinite; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .moria-splash .ms-full { opacity: 1; }
+  .moria-splash .ms-spin { opacity: 0; }
 }
 
-@keyframes moria-arc {
-  from { stroke-dashoffset: 100; }
-  to { stroke-dashoffset: 0; }
+@keyframes ms-spin-in {
+  from { transform: rotate(-200deg); }
+  to { transform: rotate(360deg); }
 }
-@keyframes moria-spin {
-  from { transform: rotate(-90deg); }
-  to { transform: rotate(270deg); }
+@keyframes ms-loop {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
-@keyframes moria-spin-rev {
+@keyframes ms-rev {
   from { transform: rotate(0deg); }
   to { transform: rotate(-360deg); }
 }
-@keyframes moria-disc {
-  from { opacity: 0; transform: scale(0.6); filter: blur(10px); }
-  to { opacity: 1; transform: scale(1); filter: blur(0); }
+@keyframes ms-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ms-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes ms-flash {
+  0% { opacity: 0; transform: scale(0.85); }
+  30% { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 0; transform: scale(1.15); }
 }
-@keyframes moria-name {
-  from { opacity: 0; letter-spacing: 0.9em; }
-  to { opacity: 0.9; letter-spacing: 0.45em; }
+@keyframes ms-disc {
+  from { opacity: 0; transform: scale(0.6); }
+  to { opacity: 1; transform: scale(1); }
 }
-@keyframes moria-flash {
-  0% { filter: brightness(1); }
-  30% { filter: brightness(1.8) drop-shadow(0 0 18px rgba(255, 190, 120, 0.9)); }
-  100% { filter: brightness(1); }
+@keyframes ms-name {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 0.9; transform: translateY(0); }
 }
 @keyframes moria-spark {
   0% { opacity: 0; transform: rotate(var(--a)) translateY(-112px) scale(1); }

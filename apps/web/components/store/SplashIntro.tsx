@@ -14,7 +14,7 @@ import { IMG_WIDTH, imgSrc } from "@/lib/img";
 
 const SEEN_KEY = "moria-abertura-vista";
 const LOGO_KEY = "moria-abertura-logo";
-const INTRO_MS = 2400;
+const INTRO_MS = 2200;
 const EXIT_MS = 650;
 const MAX_WAIT_MS = 7000;
 
@@ -24,7 +24,7 @@ type Phase = "intro" | "loader" | "exit" | "done";
 const SPARKS = Array.from({ length: 14 }, (_, i) => ({
   angle: (360 / 14) * i + (i % 2 ? 9 : -6),
   distance: 34 + ((i * 37) % 30),
-  delay: 1450 + ((i * 53) % 220),
+  delay: 1350 + ((i * 53) % 200),
   size: i % 3 === 0 ? 5 : 3,
 }));
 
@@ -104,54 +104,22 @@ export function SplashIntro({ logoUrl, name, ready }: { logoUrl?: string; name: 
       className={`moria-splash ${loader ? "is-loader" : "is-intro"} ${phase === "exit" ? "is-exit" : ""}`}
     >
       <div className="moria-splash-stage">
-        <svg className="moria-splash-ring" viewBox="0 0 260 260" aria-hidden>
-          <defs>
-            <linearGradient id="moriaRingGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#ffe2b3" />
-              <stop offset="45%" stopColor="#e9974f" />
-              <stop offset="100%" stopColor="#b8541f" />
-            </linearGradient>
-            <filter id="moriaGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="5" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-          {/* trilho apagado */}
-          <circle cx="130" cy="130" r="110" fill="none" stroke="rgba(242,225,203,0.08)" strokeWidth="2" />
-          {/* anel de luz que se desenha */}
-          <g className="moria-splash-spin">
-            <circle
-              className="moria-splash-arc"
-              cx="130"
-              cy="130"
-              r="110"
-              fill="none"
-              stroke="url(#moriaRingGrad)"
-              strokeWidth="4"
-              strokeLinecap="round"
-              filter="url(#moriaGlow)"
-              pathLength={100}
-            />
-          </g>
-          {/* anel fino que gira ao contrário */}
-          <g className="moria-splash-spin-rev">
-            <circle
-              cx="130"
-              cy="130"
-              r="122"
-              fill="none"
-              stroke="rgba(255,226,179,0.45)"
-              strokeWidth="1.2"
-              strokeLinecap="round"
-              pathLength={100}
-              strokeDasharray="18 82"
-            />
-          </g>
-        </svg>
+        {/* Anel feito só de camadas que giram e esmaecem (transform/opacity):
+            a placa de vídeo anima sozinha, sem travar enquanto a loja monta. */}
+        <div className="ms-ring">
+          <div className="ms-track" />
+          <div className="ms-thin" />
+          <div className="ms-spin">
+            <div className="ms-arc ms-glow" />
+            <div className="ms-arc" />
+            <span className="ms-head" />
+          </div>
+          <div className="ms-full">
+            <div className="ms-solid ms-glow" />
+            <div className="ms-solid" />
+          </div>
+          <div className="ms-halo" />
+        </div>
 
         {!loader &&
           SPARKS.map((s, i) => (
