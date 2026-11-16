@@ -764,19 +764,7 @@ export function Storefront({ slug }: { slug: string }) {
 
                 <PromoStrip notices={promoList} onClick={openPromo} />
 
-                <button
-                  onClick={openSearch}
-                  className="group flex h-14 w-full items-center gap-3 rounded-full border border-[var(--line)] bg-[var(--surface)] px-5 text-left text-[var(--muted)] shadow-sm transition hover:border-[var(--accent)] hover:shadow-md active:scale-[0.99] sm:h-16"
-                >
-                  <IconSearch className="h-5 w-5 shrink-0 text-[var(--accent-text)]" />
-                  <span className="flex-1 truncate text-sm sm:text-base">O que você está procurando?</span>
-                  <span className="hidden shrink-0 rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-[var(--accent-ink)] transition group-hover:brightness-110 sm:inline">
-                    Pesquisar
-                  </span>
-                </button>
-
-                {/* Selos de confiança: só no rodapé (aqui ocupavam muito espaço no celular). */}
-
+                {/* Sem barra de busca nem selos aqui: a lupa fica no topo e os selos no rodapé. */}
 
                 {featuredProducts.length > 0 && (
                   <section className="space-y-6">
