@@ -634,11 +634,13 @@ export function Storefront({ slug }: { slug: string }) {
       style={vars}
       ref={rootRef}
       data-theme={effectiveTheme}
-      className="store-fx fx-texture min-h-screen overflow-x-clip bg-[var(--bg)] font-[family-name:var(--font-sans)] text-[var(--ink)] antialiased selection:bg-[var(--accent)] selection:text-[var(--accent-ink)]"
+      className="store-fx fx-texture relative min-h-screen overflow-x-clip bg-[var(--bg)] font-[family-name:var(--font-sans)] text-[var(--ink)] antialiased selection:bg-[var(--accent)] selection:text-[var(--accent-ink)]"
     >
       {background && (
         <div aria-hidden className="pointer-events-none fixed inset-0 -z-[2]" style={background.layer} />
       )}
+      {/* Galhos de oliveira esmaecidos, espalhados pelas laterais do site todo. */}
+      <div aria-hidden className="fx-olive pointer-events-none absolute inset-0 -z-[1] overflow-hidden" />
       <header
         style={background?.header}
         className="fx-header sticky top-0 z-50 border-b border-[var(--line)] bg-[var(--surface-glass)] backdrop-blur-xl">

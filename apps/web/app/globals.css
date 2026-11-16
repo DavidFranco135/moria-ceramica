@@ -624,3 +624,24 @@
 .store-fx[data-theme="deserto"] h1 em {
   color: #9a6b3a;
 }
+
+/* Galhos de oliveira (da arte de cuidados da Moriá) esmaecidos nas laterais,
+   repetindo ao longo da página: esquerda e direita alternadas. */
+.store-fx .fx-olive {
+  background-image: url("/brand/galhos-esq.webp"), url("/brand/galhos-dir.webp");
+  background-repeat: repeat-y, repeat-y;
+  background-position: left -40px top 380px, right -30px top 900px;
+  background-size: 330px auto, 330px auto;
+  opacity: 0.32;
+}
+.store-fx[data-theme$="noite"] .fx-olive,
+.store-fx[data-theme="dark"] .fx-olive {
+  opacity: 0.16;
+}
+@media (max-width: 768px) {
+  .store-fx .fx-olive {
+    background-size: 190px auto, 190px auto;
+    background-position: left -50px top 420px, right -50px top 760px;
+    opacity: 0.22;
+  }
+}
