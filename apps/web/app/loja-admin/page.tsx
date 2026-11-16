@@ -816,8 +816,8 @@ export default function LojaAdminPage() {
                 </div>
                 {settings.theme === "deserto" && (
                   <p className="text-[11px] text-neutral-500">
-                    Rústico e elegante, lembrando o deserto: fundo areia de duna, cards cor de linho, textos terra,
-                    botões e faixa do topo em verde oliva, rodapé oliva profundo com dunas e um sol quente no alto da
+                    Rústico e elegante, lembrando o deserto: fundo areia de duna, cards cor de linho, botões em verde
+                    oliva; textos, faixa do topo e rodapé (com dunas) no marrom da logo, e um sol quente no alto da
                     página.
                   </p>
                 )}

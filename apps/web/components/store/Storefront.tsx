@@ -95,7 +95,7 @@ function AnnouncementBar({ items }: { items: string[] }) {
     </div>
   );
   return (
-    <div className="fx-marquee bg-[var(--accent)] text-[var(--accent-ink)]">
+    <div className="fx-marquee bg-[var(--brand-2)] text-[var(--brand-2-ink)]">
       <div className="overflow-hidden">
         <div className="fx-marquee-track flex w-max py-2 text-[11px] font-medium uppercase tracking-[0.18em]">
           {run(false)}
@@ -947,7 +947,7 @@ export function Storefront({ slug }: { slug: string }) {
               )}
 
               <Reveal>
-                <section className="relative overflow-hidden rounded-[32px] bg-[var(--accent)] p-8 text-[var(--accent-ink)] sm:p-14">
+                <section className="relative overflow-hidden rounded-[32px] bg-[var(--brand-2)] p-8 text-[var(--brand-2-ink)] sm:p-14">
                   <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-white/10 blur-2xl" />
                   <div className="relative flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
                     <div className="max-w-xl space-y-2">

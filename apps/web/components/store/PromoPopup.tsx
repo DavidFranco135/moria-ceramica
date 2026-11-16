@@ -58,7 +58,7 @@ export function PromoSideTab({ maxPercent, onOpen }: { maxPercent: number; onOpe
       <button
         type="button"
         onClick={onOpen}
-        className="flex items-center rounded-r-xl bg-[var(--accent)] py-4 pl-2 pr-2.5 text-xs font-semibold uppercase tracking-wider text-[var(--accent-ink)] shadow-xl transition hover:pl-3"
+        className="flex items-center rounded-r-xl bg-[var(--brand-2)] py-4 pl-2 pr-2.5 text-xs font-semibold uppercase tracking-wider text-[var(--brand-2-ink)] shadow-xl transition hover:pl-3"
         style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
       >
         Ganhe até {formatPercent(maxPercent)} OFF
@@ -112,7 +112,7 @@ export function PromoPopup({
         onClick={(e) => e.stopPropagation()}
         className="relative max-h-[92vh] w-full max-w-lg animate-sheet-up overflow-y-auto rounded-[28px] bg-[var(--surface)] text-[var(--ink)] shadow-2xl"
       >
-        <div className="relative bg-[var(--accent)] px-7 pb-7 pt-8 text-center text-[var(--accent-ink)]">
+        <div className="relative bg-[var(--brand-2)] px-7 pb-7 pt-8 text-center text-[var(--brand-2-ink)]">
           <div className="pointer-events-none absolute -right-10 -top-16 h-44 w-44 rounded-full bg-[#c47a5a]/40 blur-3xl" />
           <button
             type="button"
