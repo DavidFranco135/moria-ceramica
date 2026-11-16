@@ -25,14 +25,14 @@ function safeSet(storage: "local" | "session", key: string, value: string) {
   }
 }
 
-// Faixa fina logo abaixo da capa.
+// Faixa fina logo abaixo da capa, na cor de destaque escolhida em Minha Loja.
 export function PromoStrip({ notices, onClick }: { notices: string[]; onClick: () => void }) {
   if (notices.length === 0) return null;
   return (
     <button
       type="button"
       onClick={onClick}
-      className="fx-promo-strip group flex w-full flex-col items-center justify-center gap-x-3 gap-y-1 sm:flex-row sm:flex-wrap rounded-2xl bg-[#535417] px-4 py-3 text-center text-sm font-semibold text-[#f6efd9] shadow-md transition hover:brightness-110"
+      className="fx-promo-strip group flex w-full flex-col items-center justify-center gap-x-3 gap-y-1 sm:flex-row sm:flex-wrap rounded-2xl bg-[var(--accent)] px-4 py-3 text-center text-sm font-semibold text-[var(--accent-ink)] shadow-md transition hover:brightness-110"
     >
       {notices.map((n, i) => (
         <span key={n} className="flex items-center gap-3">
