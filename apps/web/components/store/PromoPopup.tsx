@@ -32,7 +32,7 @@ export function PromoStrip({ notices, onClick }: { notices: string[]; onClick: (
     <button
       type="button"
       onClick={onClick}
-      className="fx-promo-strip group flex w-full flex-col items-center justify-center gap-x-3 gap-y-1 sm:flex-row sm:flex-wrap rounded-2xl bg-[var(--accent)] px-4 py-3 text-center text-sm font-semibold text-[var(--accent-ink)] shadow-md transition hover:brightness-110"
+      className="fx-promo-strip group flex w-full flex-col items-center justify-center gap-x-3 gap-y-0.5 rounded-xl bg-[var(--accent)] px-3 py-2 text-center text-xs font-semibold leading-snug text-[var(--accent-ink)] shadow-sm transition hover:brightness-110 sm:flex-row sm:flex-wrap sm:rounded-2xl sm:px-4 sm:py-2.5 sm:text-sm"
     >
       {notices.map((n, i) => (
         <span key={n} className="flex items-center gap-3">
@@ -40,7 +40,7 @@ export function PromoStrip({ notices, onClick }: { notices: string[]; onClick: (
           {n}
         </span>
       ))}
-      <span className="text-xs font-normal opacity-80">(desconto automático no carrinho)</span>
+      <span className="text-[10px] font-normal opacity-80 sm:text-xs">(desconto automático no carrinho)</span>
     </button>
   );
 }

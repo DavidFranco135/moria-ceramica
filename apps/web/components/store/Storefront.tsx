@@ -775,7 +775,7 @@ export function Storefront({ slug }: { slug: string }) {
                   </span>
                 </button>
 
-                <TrustBadges badges={settings.trust_badges} />
+                {/* Selos de confiança: só no rodapé (aqui ocupavam muito espaço no celular). */}
 
 
                 {featuredProducts.length > 0 && (
