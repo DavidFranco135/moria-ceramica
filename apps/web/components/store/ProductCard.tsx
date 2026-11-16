@@ -124,11 +124,13 @@ export function ProductCard({
           {product.price_on_request ? (
             <p className="text-sm font-semibold text-[var(--accent-text)]">{priceLabel(product)}</p>
           ) : (
-            <p className="font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--ink)]">
-              <PriceTag product={product} finalClassName={product.discount_percent ? "text-[#c2372f]" : ""} />
-            </p>
+            <div className="min-w-0">
+              <p className="font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--ink)]">
+                <PriceTag product={product} finalClassName={product.discount_percent ? "text-[#c2372f]" : ""} />
+              </p>
+              <InstallmentsLine amount={unitPrice(product)} />
+            </div>
           )}
-          {!product.price_on_request && <InstallmentsLine amount={unitPrice(product)} className="-mt-1" />}
 
           {!product.available ? (
             <span className="text-xs text-[var(--muted)]">Indisponível</span>
