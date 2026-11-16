@@ -692,3 +692,10 @@ html[data-loja-tema="deserto"] .moria-splash-spark {
   background: #f6eed6;
   box-shadow: 0 0 8px 2px rgba(216, 197, 138, 0.9);
 }
+
+/* Caixas de marcar, rádios e barras do gestor no verde oliva da marca. */
+input[type="checkbox"],
+input[type="radio"],
+input[type="range"] {
+  accent-color: #6d6e2f;
+}

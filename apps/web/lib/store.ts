@@ -246,7 +246,7 @@ export const THEMES = {
   "moria-noite": { bg: "#1f140c", surface: "#2c1d12", ink: "#f2e1cb", muted: "#cdb08c", line: "#43301f" },
   // Deserto: areia de duna, linho, textos oliva-terra; rodapé oliva profundo.
   // Textos no marrom da logo, para equilibrar o verde oliva.
-  deserto: { bg: "#e8dcc3", surface: "#f4ecdd", ink: "#4b2f1c", muted: "#6f5743", line: "#d6c6a5" },
+  deserto: { bg: "#e8dcc3", surface: "#f4ecdd", ink: "#5a3c27", muted: "#76604b", line: "#d6c6a5" },
   "deserto-noite": { bg: "#18170e", surface: "#232214", ink: "#efe6cf", muted: "#c6b892", line: "#3a3824" },
 } as const;
 
@@ -276,7 +276,7 @@ export function themeVars(accent: string, theme: RenderTheme): React.CSSProperti
   const footer = isMoria
     ? { bg: theme === "moria" ? "#4c2d18" : "#140c06", ink: "#f2e1cb", muted: "#e0c9a6", line: "rgba(242,225,203,0.18)" }
     : isDesert
-      ? { bg: theme === "deserto" ? "#3b2414" : "#0f0e07", ink: "#f1e8d2", muted: "#dcc8a8", line: "rgba(241,232,210,0.18)" }
+      ? { bg: theme === "deserto" ? "#5c3d27" : "#0f0e07", ink: "#f1e8d2", muted: "#dcc8a8", line: "rgba(241,232,210,0.18)" }
       : { bg: t.surface, ink: t.ink, muted: t.muted, line: t.line };
   return {
     "--bg": t.bg,
@@ -289,7 +289,7 @@ export function themeVars(accent: string, theme: RenderTheme): React.CSSProperti
     "--accent-text": color,
     // Segunda cor da marca: no tema Deserto é o marrom da logo (faixa do topo,
     // faixa "Não achou…", aba de desconto); nos outros temas, a mesma do destaque.
-    "--brand-2": theme === "deserto" ? "#4b2f1c" : color,
+    "--brand-2": theme === "deserto" ? "#6e4b32" : color,
     "--brand-2-ink": theme === "deserto" ? "#f2e1cb" : ink,
     "--bg-glass": rgba(t.bg, 0.82),
     "--surface-glass": rgba(t.surface, 0.82),

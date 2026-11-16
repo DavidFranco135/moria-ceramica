@@ -4,6 +4,36 @@ const config: Config = {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      // Cores do gestor (painel interno) nas cores da Moriá: os cinzas viram
+      // tons de café/areia e o azul dos botões vira verde oliva.
+      colors: {
+        neutral: {
+          50: "#faf5ec",
+          100: "#f2e9da",
+          200: "#e4d8c5",
+          300: "#d0c1ab",
+          400: "#b3a089",
+          500: "#917c64",
+          600: "#6e5843",
+          700: "#544130",
+          800: "#3f3024",
+          900: "#2c2119",
+          950: "#1e1611",
+        },
+        blue: {
+          50: "#f5f5e6",
+          100: "#e9e9c9",
+          200: "#dcdba6",
+          300: "#cdcb86",
+          400: "#bab76a",
+          500: "#8e8d42",
+          600: "#6d6e2f",
+          700: "#585927",
+          800: "#45461f",
+          900: "#33341a",
+          950: "#24250f",
+        },
+      },
       keyframes: {
         'slide-in-right': { from: { opacity: '0', transform: 'translateX(56px)' }, to: { opacity: '1', transform: 'translateX(0)' } },
         'slide-in-left': { from: { opacity: '0', transform: 'translateX(-56px)' }, to: { opacity: '1', transform: 'translateX(0)' } },
