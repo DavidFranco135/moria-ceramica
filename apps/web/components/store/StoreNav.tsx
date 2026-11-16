@@ -35,7 +35,7 @@ const linkBase =
 function linkClass(active: boolean) {
   return `${linkBase} ${
     active
-      ? "text-[var(--accent)] after:scale-x-100"
+      ? "text-[var(--accent-text)] after:scale-x-100"
       : "text-[var(--muted)] after:scale-x-0 hover:text-[var(--ink)] hover:after:scale-x-100"
   }`;
 }
@@ -136,7 +136,7 @@ export function DesktopNav({ categories, tab, activeTopId, activeCategoryId, onT
                 className="group inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl font-semibold text-[var(--ink)]"
               >
                 {open.name}
-                <IconArrowRight className="h-5 w-5 text-[var(--accent)] transition-transform group-hover:translate-x-1" />
+                <IconArrowRight className="h-5 w-5 text-[var(--accent-text)] transition-transform group-hover:translate-x-1" />
               </button>
               <ul className="grid grid-cols-2 gap-x-8 gap-y-1 lg:grid-cols-3">
                 {open.children.map((child, i) => (
@@ -249,7 +249,7 @@ export function MobileMenu({
 
   const row =
     "flex w-full items-center justify-between gap-3 rounded-2xl px-4 py-3.5 text-left text-base font-medium transition active:bg-[var(--accent-soft)]";
-  const rowTone = (active: boolean) => (active ? "bg-[var(--accent-soft)] text-[var(--accent)]" : "text-[var(--ink)]");
+  const rowTone = (active: boolean) => (active ? "bg-[var(--accent-soft)] text-[var(--accent-text)]" : "text-[var(--ink)]");
 
   return (
     <div className={`fixed inset-0 z-[70] lg:hidden ${open ? "" : "pointer-events-none"}`} aria-hidden={!open}>
@@ -318,7 +318,7 @@ export function MobileMenu({
                     <div className="overflow-hidden">
                       <div className="ml-4 space-y-0.5 border-l border-[var(--line)] py-1 pl-3">
                         <button
-                          className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-[var(--accent)] active:bg-[var(--accent-soft)]"
+                          className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-[var(--accent-text)] active:bg-[var(--accent-soft)]"
                           onClick={() => pick(() => onCategory(c.id))}
                         >
                           Ver tudo em {c.name}
@@ -328,7 +328,7 @@ export function MobileMenu({
                           <button
                             key={child.id}
                             className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left text-sm active:bg-[var(--accent-soft)] ${
-                              tab === 1 && activeCategoryId === child.id ? "font-semibold text-[var(--accent)]" : "text-[var(--muted)]"
+                              tab === 1 && activeCategoryId === child.id ? "font-semibold text-[var(--accent-text)]" : "text-[var(--muted)]"
                             }`}
                             onClick={() => pick(() => onCategory(child.id))}
                           >

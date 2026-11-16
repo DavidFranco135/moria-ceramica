@@ -121,7 +121,7 @@ function SectionTitle({
     <div className="flex items-end justify-between gap-4">
       <div className="space-y-2">
         {eyebrow && (
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-text)]">
             {eyebrow}
           </p>
         )}
@@ -689,7 +689,7 @@ export function Storefront({ slug }: { slug: string }) {
               onClick={openSearch}
               aria-label="Buscar produto"
               title="Buscar produto"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] transition hover:border-[var(--accent)] hover:text-[var(--accent)] active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] transition hover:border-[var(--accent)] hover:text-[var(--accent-text)] active:scale-95"
             >
               <IconSearch className="h-5 w-5" />
             </button>
@@ -768,7 +768,7 @@ export function Storefront({ slug }: { slug: string }) {
                   onClick={openSearch}
                   className="group flex h-14 w-full items-center gap-3 rounded-full border border-[var(--line)] bg-[var(--surface)] px-5 text-left text-[var(--muted)] shadow-sm transition hover:border-[var(--accent)] hover:shadow-md active:scale-[0.99] sm:h-16"
                 >
-                  <IconSearch className="h-5 w-5 shrink-0 text-[var(--accent)]" />
+                  <IconSearch className="h-5 w-5 shrink-0 text-[var(--accent-text)]" />
                   <span className="flex-1 truncate text-sm sm:text-base">O que você está procurando?</span>
                   <span className="hidden shrink-0 rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-[var(--accent-ink)] transition group-hover:brightness-110 sm:inline">
                     Pesquisar
@@ -786,7 +786,7 @@ export function Storefront({ slug }: { slug: string }) {
                       action={
                         <button
                           onClick={() => openCategory(null)}
-                          className="group hidden items-center gap-2 text-sm font-semibold text-[var(--accent)] sm:inline-flex"
+                          className="group hidden items-center gap-2 text-sm font-semibold text-[var(--accent-text)] sm:inline-flex"
                         >
                           Ver catálogo completo
                           <IconArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -850,7 +850,7 @@ export function Storefront({ slug }: { slug: string }) {
                     .map((h, i) => (
                       <Reveal key={i} delay={i * 90}>
                         <div className="h-full rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-6 transition duration-500 hover:-translate-y-1 hover:shadow-xl">
-                          <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent)]">
+                          <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent-text)]">
                             <IconSparkle className="h-5 w-5" />
                           </div>
                           <h3 className="mb-1.5 font-semibold">{h.title}</h3>
@@ -864,7 +864,7 @@ export function Storefront({ slug }: { slug: string }) {
               <Reveal>
                 <section className="grid items-center gap-8 rounded-[32px] border border-[var(--line)] bg-[var(--accent-soft)] p-8 sm:p-12 lg:grid-cols-[1.2fr_1fr]">
                   <div className="space-y-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-text)]">
                       Personalizados
                     </p>
                     <h2 className="font-[family-name:var(--font-display)] text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -898,7 +898,7 @@ export function Storefront({ slug }: { slug: string }) {
                 <Reveal>
                   <section className="grid gap-8 rounded-[32px] border border-[var(--line)] bg-[var(--surface)] p-8 sm:p-12 lg:grid-cols-[1fr_1.4fr]">
                     <div className="space-y-3">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-text)]">
                         Sobre nós
                       </p>
                       <h2 className="font-[family-name:var(--font-display)] text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -923,7 +923,7 @@ export function Storefront({ slug }: { slug: string }) {
                           href={`https://instagram.com/${instagramHandle}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--accent)] hover:underline"
+                          className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--accent-text)] hover:underline"
                         >
                           <IconInstagram className="h-4 w-4" />@{instagramHandle}
                         </a>
@@ -1016,7 +1016,7 @@ export function Storefront({ slug }: { slug: string }) {
                         aria-pressed={active}
                         className={`inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-[13px] font-medium transition ${
                           active
-                            ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]"
+                            ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent-text)]"
                             : "border-transparent text-[var(--muted)] hover:text-[var(--ink)]"
                         }`}
                       >
@@ -1106,7 +1106,7 @@ export function Storefront({ slug }: { slug: string }) {
                 {steps.map((step, i) => (
                   <Reveal key={step.title} delay={i * 100}>
                     <div className="relative h-full overflow-hidden rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-7 transition duration-500 hover:-translate-y-1 hover:shadow-xl">
-                      <span className="absolute -right-2 -top-4 font-[family-name:var(--font-display)] text-[110px] font-semibold leading-none text-[var(--accent)] opacity-[0.08]">
+                      <span className="absolute -right-2 -top-4 font-[family-name:var(--font-display)] text-[110px] font-semibold leading-none text-[var(--accent-text)] opacity-[0.08]">
                         {i + 1}
                       </span>
                       <div className="relative space-y-2">
@@ -1158,7 +1158,7 @@ export function Storefront({ slug }: { slug: string }) {
                       rel="noopener noreferrer"
                       className="flex items-center gap-4 rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-6 transition hover:-translate-y-1 hover:shadow-lg"
                     >
-                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent)]">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent-text)]">
                         <IconInstagram className="h-6 w-6" />
                       </span>
                       <span>
@@ -1169,7 +1169,7 @@ export function Storefront({ slug }: { slug: string }) {
                   )}
                   {settings.hours && (
                     <div className="flex items-start gap-4 rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-6">
-                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent)]">
+                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent-text)]">
                         <IconClock className="h-6 w-6" />
                       </span>
                       <span>
@@ -1180,7 +1180,7 @@ export function Storefront({ slug }: { slug: string }) {
                   )}
                   {settings.address && (
                     <div className="flex items-start gap-4 rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-6">
-                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent)]">
+                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent-text)]">
                         <IconPin className="h-6 w-6" />
                       </span>
                       <span>

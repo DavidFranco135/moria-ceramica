@@ -192,6 +192,10 @@ type Accent = {
   swatch?: string;
   // Variante para o tema escuro, quando a cor do tema claro não funciona lá.
   dark?: { color: string; ink: string };
+  // Cores claras (ex.: Absinto): texto escuro dentro do botão e uma versão
+  // mais escura para textos/links sobre o fundo creme.
+  ink?: string;
+  text?: string;
 };
 
 export const ACCENTS: Record<string, Accent> = {
@@ -235,7 +239,25 @@ export const ACCENTS: Record<string, Accent> = {
   emerald: { label: "Esmeralda", color: "#047857", soft: "#ecfdf5" },
   rose: { label: "Rosé", color: "#be123c", soft: "#fff1f2" },
   amber: { label: "Âmbar", color: "#b45309", soft: "#fffbeb" },
-  slate: { label: "Grafite", color: "#1e293b", soft: "#f1f5f9", dark: { color: "#e2e8f0", ink: "#0f172a" } },
+  slate: { label: "Grafite", color: "#1e293b", soft: "#f1f5f9", dark: { color: "#e2e8f0", ink: "#0f172a" } },  // Paleta enviada pela Moriá (Suvinil Absinto + cartela terra/oliva).
+  absinto: { label: "Absinto (Suvinil)", color: "#d3e6a5", soft: "#f7faef", ink: "#2a2418", text: "#666a4c", dark: { color: "#d3e6a5", ink: "#1a1610" } },
+  p_salvia_clara: { label: "Sálvia clara", color: "#98a683", soft: "#ecefe9", ink: "#2a2418", text: "#676d55", dark: { color: "#98a683", ink: "#1a1610" } },
+  p_musgo: { label: "Musgo", color: "#7a8269", soft: "#e7e8e4", dark: { color: "#80886f", ink: "#16120c" } },
+  p_oliva_floresta: { label: "Oliva floresta", color: "#5c644d", soft: "#e2e3df", dark: { color: "#848874", ink: "#16120c" } },
+  p_verde_mata: { label: "Verde mata", color: "#3d4335", soft: "#dcdddb", dark: { color: "#7f8174", ink: "#16120c" } },
+  p_linho: { label: "Linho", color: "#dad0ad", soft: "#f8f7f0", ink: "#2a2418", text: "#736b57", dark: { color: "#dad0ad", ink: "#1a1610" } },
+  p_pedra: { label: "Pedra", color: "#aba78a", soft: "#f0efea", ink: "#2a2418", text: "#6c6753", dark: { color: "#aba78a", ink: "#1a1610" } },
+  p_taupe: { label: "Taupe", color: "#837c68", soft: "#e9e7e4", dark: { color: "#89826e", ink: "#16120c" } },
+  p_grafite_oliva: { label: "Grafite oliva", color: "#575348", soft: "#e1e0de", dark: { color: "#888378", ink: "#16120c" } },
+  p_damasco: { label: "Damasco", color: "#d98b5f", soft: "#f8eae2", ink: "#2a2418", text: "#8e5d3f", dark: { color: "#d98b5f", ink: "#1a1610" } },
+  p_argila: { label: "Argila", color: "#ad6e4f", soft: "#f0e5df", dark: { color: "#b17557", ink: "#16120c" } },
+  p_canela: { label: "Canela", color: "#815338", soft: "#e8e0db", dark: { color: "#9f7b64", ink: "#16120c" } },
+  p_cafe_torrado: { label: "Café torrado", color: "#58372c", soft: "#e1dbd9", dark: { color: "#998377", ink: "#16120c" } },
+  p_terracota_viva: { label: "Terracota viva", color: "#c76e50", soft: "#f5e5e0", dark: { color: "#c76e50", ink: "#16120c" } },
+  p_tijolo: { label: "Tijolo", color: "#9f5a3f", soft: "#eee1dc", dark: { color: "#ad7158", ink: "#16120c" } },
+  p_castanha: { label: "Castanha", color: "#76442f", soft: "#e6ddda", dark: { color: "#9e7966", ink: "#16120c" } },
+  p_chocolate: { label: "Chocolate", color: "#502e22", soft: "#e0d9d7", dark: { color: "#947d71", ink: "#16120c" } },
+  p_caramelo: { label: "Areia caramelo", color: "#bfa184", soft: "#f3eee9", ink: "#2a2418", text: "#776350", dark: { color: "#bfa184", ink: "#1a1610" } },
 };
 
 export const THEMES = {
@@ -273,7 +295,10 @@ export function themeVars(accent: string, theme: RenderTheme): React.CSSProperti
   const t = THEMES[theme] ?? THEMES.light;
   const isDark = theme === "dark" || theme === "moria-noite" || theme === "deserto-noite";
   const color = isDark && a.dark ? a.dark.color : a.color;
-  const ink = isDark && a.dark ? a.dark.ink : theme === "moria" ? "#f2e1cb" : theme === "deserto" ? "#f3ead6" : "#fffaf0";
+  const ink =
+    isDark && a.dark
+      ? a.dark.ink
+      : (a.ink ?? (theme === "moria" ? "#f2e1cb" : theme === "deserto" ? "#f3ead6" : "#fffaf0"));
   const footer = isMoria
     ? { bg: theme === "moria" ? "#4c2d18" : "#140c06", ink: "#f2e1cb", muted: "#e0c9a6", line: "rgba(242,225,203,0.18)" }
     : isDesert
@@ -287,7 +312,7 @@ export function themeVars(accent: string, theme: RenderTheme): React.CSSProperti
     "--line": t.line,
     "--accent": color,
     "--accent-ink": ink,
-    "--accent-text": color,
+    "--accent-text": isDark ? color : (a.text ?? color),
     // Segunda cor da marca: no tema Deserto é o marrom da logo (faixa do topo,
     // faixa "Não achou…", aba de desconto); nos outros temas, a mesma do destaque.
     "--brand-2": theme === "deserto" ? "#6e4b32" : color,
