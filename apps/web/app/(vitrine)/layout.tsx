@@ -26,5 +26,17 @@ export const viewport: Viewport = {
 };
 
 export default function LojaLayout({ children }: { children: React.ReactNode }) {
-  return <div className={`${sans.variable} ${display.variable}`}>{children}</div>;
+  return (
+    <div className={`${sans.variable} ${display.variable}`}>
+      {/* Antes de qualquer coisa aparecer: aplica o último tema visto neste
+          aparelho, para a abertura animada já sair nas cores certas. */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html:
+            "try{var t=localStorage.getItem('moria-tema');if(t)document.documentElement.setAttribute('data-loja-tema',t)}catch(e){}",
+        }}
+      />
+      {children}
+    </div>
+  );
 }

@@ -225,6 +225,18 @@ export function Storefront({ slug }: { slug: string }) {
   const searchRef = useRef<HTMLInputElement>(null);
   useStoreFx(rootRef, store !== null);
   useStoreServiceWorker();
+  // Guarda o tema da loja neste aparelho: na próxima visita a abertura
+  // animada já sai nas cores dele (ver o script do layout da vitrine).
+  useEffect(() => {
+    const theme = store?.settings.theme;
+    if (!theme) return;
+    try {
+      localStorage.setItem("moria-tema", theme);
+    } catch {
+      /* armazenamento indisponível */
+    }
+    document.documentElement.setAttribute("data-loja-tema", theme);
+  }, [store?.settings.theme]);
   const prefersDark = usePrefersDark();
 
   // Link direto do produto (?p=<id>): abre o produto assim que a loja carrega.

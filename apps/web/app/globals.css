@@ -645,3 +645,50 @@
     opacity: 0.22;
   }
 }
+
+/* Abertura no tema Deserto: oliva profundo com brilho de areia dourada.
+   O tema vem do <html data-loja-tema> (definido antes da página aparecer, a
+   partir do último tema visto neste aparelho). */
+html[data-loja-tema="deserto"] .moria-splash {
+  background: radial-gradient(circle at 50% 45%, #4d4f27 0%, #2c2d15 55%, #15160a 100%);
+}
+html[data-loja-tema="deserto"] .ms-track { background: rgba(241, 232, 210, 0.09); }
+html[data-loja-tema="deserto"] .ms-thin {
+  background: conic-gradient(rgba(244, 234, 208, 0.55) 0 18%, transparent 18% 50%, rgba(244, 234, 208, 0.3) 50% 60%, transparent 60%);
+}
+html[data-loja-tema="deserto"] .ms-arc {
+  background: conic-gradient(
+    transparent 0deg,
+    transparent 70deg,
+    rgba(160, 138, 70, 0.15) 150deg,
+    #a08a46 250deg,
+    #d8c58a 320deg,
+    #f6eed6 357deg,
+    transparent 360deg
+  );
+}
+html[data-loja-tema="deserto"] .ms-head {
+  background: #fffbea;
+  box-shadow: 0 0 10px 4px rgba(240, 225, 170, 0.95), 0 0 24px 8px rgba(216, 197, 138, 0.55);
+}
+html[data-loja-tema="deserto"] .ms-solid {
+  background: conic-gradient(#f6eed6, #d8c58a 25%, #a08a46 50%, #d8c58a 75%, #f6eed6);
+}
+html[data-loja-tema="deserto"] .ms-wave {
+  border-color: #f6eed6;
+  box-shadow: 0 0 24px 6px rgba(216, 197, 138, 0.6), inset 0 0 18px 2px rgba(216, 197, 138, 0.6);
+}
+html[data-loja-tema="deserto"] .ms-halo {
+  background: radial-gradient(circle, rgba(240, 225, 170, 0.55) 0%, rgba(216, 197, 138, 0.25) 35%, transparent 65%);
+}
+html[data-loja-tema="deserto"] .moria-splash-disc {
+  background: radial-gradient(circle at 50% 35%, #fbf7ec 0%, #efe6cf 70%, #e0d3b0 100%);
+  box-shadow: 0 0 0 1px rgba(244, 234, 208, 0.25), 0 0 60px -6px rgba(216, 197, 138, 0.55),
+    inset 0 -8px 20px rgba(80, 80, 40, 0.18);
+}
+html[data-loja-tema="deserto"] .moria-splash-initial { color: #36301f; }
+html[data-loja-tema="deserto"] .moria-splash-name { color: #f1e8d2; }
+html[data-loja-tema="deserto"] .moria-splash-spark {
+  background: #f6eed6;
+  box-shadow: 0 0 8px 2px rgba(216, 197, 138, 0.9);
+}
