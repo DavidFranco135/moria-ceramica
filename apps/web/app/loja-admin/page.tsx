@@ -796,6 +796,13 @@ export default function LojaAdminPage() {
                         settings.theme === t ? "border-blue-500 bg-blue-950 text-blue-200" : "border-neutral-700 text-neutral-400 hover:border-neutral-500"
                       }`}
                     >
+                      {t === "deserto" && (
+                        <span
+                          aria-hidden
+                          className="h-4 w-4 rounded-full border border-[#b8a57a]"
+                          style={{ background: "linear-gradient(135deg, #e8dcc3 50%, #4f5129 50%)" }}
+                        />
+                      )}
                       {t === "moria" && (
                         <span
                           aria-hidden
@@ -807,6 +814,13 @@ export default function LojaAdminPage() {
                     </button>
                   ))}
                 </div>
+                {settings.theme === "deserto" && (
+                  <p className="text-[11px] text-neutral-500">
+                    Rústico e elegante, lembrando o deserto: fundo areia de duna, cards cor de linho, textos terra,
+                    botões e faixa do topo em verde oliva, rodapé oliva profundo com dunas e um sol quente no alto da
+                    página.
+                  </p>
+                )}
                 {settings.theme === "moria" && (
                   <p className="text-[11px] text-neutral-500">
                     Paleta da marca: fundo areia, cabeçalho e cards creme, textos e botões café, rodapé café (a cor de destaque acima vale só para os temas Claro e Escuro).

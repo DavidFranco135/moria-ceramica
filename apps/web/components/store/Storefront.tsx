@@ -633,6 +633,7 @@ export function Storefront({ slug }: { slug: string }) {
     <div
       style={vars}
       ref={rootRef}
+      data-theme={effectiveTheme}
       className="store-fx fx-texture min-h-screen overflow-x-clip bg-[var(--bg)] font-[family-name:var(--font-sans)] text-[var(--ink)] antialiased selection:bg-[var(--accent)] selection:text-[var(--accent-ink)]"
     >
       {background && (
@@ -648,7 +649,7 @@ export function Storefront({ slug }: { slug: string }) {
             {settings.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={imgSrc(logoForTheme(settings.logo_url, effectiveTheme === "moria-noite" || effectiveTheme === "dark"), IMG_WIDTH.thumb)}
+                src={imgSrc(logoForTheme(settings.logo_url, effectiveTheme === "moria-noite" || effectiveTheme === "deserto-noite" || effectiveTheme === "dark"), IMG_WIDTH.thumb)}
                 alt={storeName}
                 // Logo inteira, no formato dela (redonda, larga ou quadrada).
                 className="fx-logo h-12 w-auto max-w-[170px] shrink-0 object-contain sm:h-16 sm:max-w-[200px]"
@@ -1217,7 +1218,7 @@ export function Storefront({ slug }: { slug: string }) {
         </div>
       </main>
 
-      <footer className="border-t border-[var(--footer-line)] bg-[var(--footer-bg)] pb-28 text-sm text-[var(--footer-muted)]">
+      <footer className="fx-footer relative border-t border-[var(--footer-line)] bg-[var(--footer-bg)] pb-28 text-sm text-[var(--footer-muted)]">
         <div className="mx-auto grid max-w-[1600px] gap-10 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-10">
           <div className="space-y-3">
             <p className="font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--footer-ink)]">{storeName}</p>

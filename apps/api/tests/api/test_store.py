@@ -433,3 +433,10 @@ def test_store_background_settings(client: TestClient):
     s = client.get(f"/api/v1/public/stores/{slug}").json()["settings"]
     assert (s["background_style"], s["background_opacity"], s["background_header"]) == ("foto", 25, True)
     assert client.put(url, json={"background_style": "neon"}, headers=headers).status_code == 422
+
+
+def test_store_accepts_desert_theme(client: TestClient):
+    org_id, slug, headers = _setup(client)
+    url = f"/api/v1/organizations/{org_id}/store"
+    assert client.put(url, json={"theme": "deserto"}, headers=headers).status_code == 200
+    assert client.put(url, json={"theme": "praia"}, headers=headers).status_code == 422

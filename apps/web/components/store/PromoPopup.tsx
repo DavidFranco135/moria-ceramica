@@ -58,7 +58,7 @@ export function PromoSideTab({ maxPercent, onOpen }: { maxPercent: number; onOpe
       <button
         type="button"
         onClick={onOpen}
-        className="flex items-center rounded-r-xl bg-[#4c2d18] py-4 pl-2 pr-2.5 text-xs font-semibold uppercase tracking-wider text-[#f2e1cb] shadow-xl transition hover:pl-3"
+        className="flex items-center rounded-r-xl bg-[var(--accent)] py-4 pl-2 pr-2.5 text-xs font-semibold uppercase tracking-wider text-[var(--accent-ink)] shadow-xl transition hover:pl-3"
         style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
       >
         Ganhe até {formatPercent(maxPercent)} OFF
@@ -70,7 +70,7 @@ export function PromoSideTab({ maxPercent, onOpen }: { maxPercent: number; onOpe
           safeSet("session", TAB_KEY, "1");
           setHidden(true);
         }}
-        className="absolute -right-3 -top-3 flex h-6 w-6 items-center justify-center rounded-full border border-[#4c2d18]/20 bg-white text-xs text-neutral-800 shadow"
+        className="absolute -right-3 -top-3 flex h-6 w-6 items-center justify-center rounded-full border border-[var(--line)] bg-white text-xs text-neutral-800 shadow"
       >
         ×
       </button>
@@ -110,19 +110,19 @@ export function PromoPopup({
         aria-modal="true"
         aria-label="Descontos da loja"
         onClick={(e) => e.stopPropagation()}
-        className="relative max-h-[92vh] w-full max-w-lg animate-sheet-up overflow-y-auto rounded-[28px] bg-[#f4e5d0] text-[#4b2f1c] shadow-2xl"
+        className="relative max-h-[92vh] w-full max-w-lg animate-sheet-up overflow-y-auto rounded-[28px] bg-[var(--surface)] text-[var(--ink)] shadow-2xl"
       >
-        <div className="relative bg-[#4c2d18] px-7 pb-7 pt-8 text-center text-[#f2e1cb]">
+        <div className="relative bg-[var(--accent)] px-7 pb-7 pt-8 text-center text-[var(--accent-ink)]">
           <div className="pointer-events-none absolute -right-10 -top-16 h-44 w-44 rounded-full bg-[#c47a5a]/40 blur-3xl" />
           <button
             type="button"
             aria-label="Fechar"
             onClick={onClose}
-            className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-2xl leading-none text-[#f2e1cb]/80 transition hover:bg-white/10 hover:text-white"
+            className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-2xl leading-none text-[var(--accent-ink)]/80 transition hover:bg-white/10 hover:text-white"
           >
             ×
           </button>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-[#e0c9a6]">Boas-vindas à Moriá</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-[var(--accent-ink)] opacity-75">Boas-vindas à Moriá</p>
           <h2 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight sm:text-4xl">
             Descontos <em className="font-normal italic">especiais</em> para você
           </h2>
@@ -133,7 +133,7 @@ export function PromoPopup({
               const pct = n.match(/(\d+(?:,\d+)?)%/)?.[1];
               return (
                 <li key={n} className="flex items-center gap-4 rounded-2xl bg-white/60 p-3.5">
-                  <span className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-[#4c2d18] text-[#f2e1cb]">
+                  <span className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-[var(--accent)] text-[var(--accent-ink)]">
                     <span className="text-lg font-bold leading-none">{pct ?? "%"}%</span>
                     <span className="text-[9px] font-semibold tracking-widest">OFF</span>
                   </span>
@@ -142,14 +142,14 @@ export function PromoPopup({
               );
             })}
           </ul>
-          <p className="text-center text-sm text-[#754d40]">
+          <p className="text-center text-sm text-[var(--muted)]">
             Sem cupom e sem cadastro: o desconto é aplicado automaticamente no carrinho, mostrando o preço antigo e o
             novo.{notices.length > 1 && !stack ? " Os descontos não se acumulam: vale sempre o maior." : ""}
           </p>
           <button
             type="button"
             onClick={onShop}
-            className="fx-btn h-12 w-full rounded-full bg-[#4c2d18] text-sm font-semibold uppercase tracking-wider text-[#f2e1cb] shadow-lg transition hover:-translate-y-0.5"
+            className="fx-btn h-12 w-full rounded-full bg-[var(--accent)] text-sm font-semibold uppercase tracking-wider text-[var(--accent-ink)] shadow-lg transition hover:-translate-y-0.5"
           >
             Ver produtos com desconto
           </button>

@@ -25,12 +25,13 @@ export type PublicCategory = {
 
 // "moria": tema da marca — fundo areia, cabeçalho e cards creme, textos e
 // botões café e rodapé café com letras creme (paleta da loja Moriá).
-export type StoreTheme = "light" | "dark" | "moria";
+export type StoreTheme = "light" | "dark" | "moria" | "deserto";
 
 export const THEME_OPTIONS: { key: StoreTheme; label: string }[] = [
   { key: "light", label: "Claro" },
   { key: "dark", label: "Escuro" },
   { key: "moria", label: "Moriá – areia e café" },
+  { key: "deserto", label: "Deserto – areia e oliva" },
 ];
 
 export type StoreSettings = {
@@ -204,6 +205,14 @@ export const ACCENTS: Record<string, Accent> = {
     swatch: "#4c2d18",
     dark: { color: "#e6c9a3", ink: "#24150b" },
   },
+  // Tema Deserto: verde oliva profundo, rústico e elegante.
+  deserto: {
+    label: "Oliva do deserto",
+    color: "#4f5129",
+    soft: "#e2dcc1",
+    swatch: "#6b6d36",
+    dark: { color: "#cfcd8f", ink: "#16160a" },
+  },
   oliva: {
     label: "Verde oliva",
     color: "#535417",
@@ -235,15 +244,18 @@ export const THEMES = {
   moria: { bg: "#ebd7bb", surface: "#f4e5d0", ink: "#4b2f1c", muted: "#754d40", line: "#d9bf9b" },
   // Versão noturna do tema Moriá (modo escuro automático): café escuro e creme.
   "moria-noite": { bg: "#1f140c", surface: "#2c1d12", ink: "#f2e1cb", muted: "#cdb08c", line: "#43301f" },
+  // Deserto: areia de duna, linho, textos oliva-terra; rodapé oliva profundo.
+  deserto: { bg: "#e8dcc3", surface: "#f4ecdd", ink: "#36301f", muted: "#73664c", line: "#d6c6a5" },
+  "deserto-noite": { bg: "#18170e", surface: "#232214", ink: "#efe6cf", muted: "#c6b892", line: "#3a3824" },
 } as const;
 
 // Tema efetivamente desenhado (inclui a variante noturna, que não é escolhida
 // no painel: entra sozinha com o modo escuro automático).
-export type RenderTheme = StoreTheme | "moria-noite";
+export type RenderTheme = StoreTheme | "moria-noite" | "deserto-noite";
 
 // Modo escuro automático: qual tema usar quando o aparelho está no escuro.
 export function darkVariant(theme: StoreTheme): RenderTheme {
-  return theme === "moria" ? "moria-noite" : "dark";
+  return theme === "moria" ? "moria-noite" : theme === "deserto" ? "deserto-noite" : "dark";
 }
 
 function rgba(hex: string, alpha: number): string {
@@ -252,12 +264,19 @@ function rgba(hex: string, alpha: number): string {
 }
 
 export function themeVars(accent: string, theme: RenderTheme): React.CSSProperties {
-  // O tema da marca usa sempre o café da paleta Moriá.
-  const a = theme === "moria" || theme === "moria-noite" ? ACCENTS.cafe : (ACCENTS[accent] ?? ACCENTS.cafe);
+  // Os temas da marca usam sempre a sua cor: café (Moriá) ou oliva (Deserto).
+  const isMoria = theme === "moria" || theme === "moria-noite";
+  const isDesert = theme === "deserto" || theme === "deserto-noite";
+  const a = isMoria ? ACCENTS.cafe : isDesert ? ACCENTS.deserto : (ACCENTS[accent] ?? ACCENTS.cafe);
   const t = THEMES[theme] ?? THEMES.light;
-  const isDark = theme === "dark" || theme === "moria-noite";
+  const isDark = theme === "dark" || theme === "moria-noite" || theme === "deserto-noite";
   const color = isDark && a.dark ? a.dark.color : a.color;
-  const ink = isDark && a.dark ? a.dark.ink : theme === "moria" ? "#f2e1cb" : "#fffaf0";
+  const ink = isDark && a.dark ? a.dark.ink : theme === "moria" ? "#f2e1cb" : theme === "deserto" ? "#f3ead6" : "#fffaf0";
+  const footer = isMoria
+    ? { bg: theme === "moria" ? "#4c2d18" : "#140c06", ink: "#f2e1cb", muted: "#e0c9a6", line: "rgba(242,225,203,0.18)" }
+    : isDesert
+      ? { bg: theme === "deserto" ? "#3d3f20" : "#0f0e07", ink: "#f1e8d2", muted: "#d3c6a2", line: "rgba(241,232,210,0.18)" }
+      : { bg: t.surface, ink: t.ink, muted: t.muted, line: t.line };
   return {
     "--bg": t.bg,
     "--surface": t.surface,
@@ -272,11 +291,11 @@ export function themeVars(accent: string, theme: RenderTheme): React.CSSProperti
     "--accent-ring": rgba(color, 0.22),
     "--accent-soft":
       isDark ? "rgba(255,255,255,0.06)" : a.soft,
-    // Rodapé: no tema Moriá é café com letras creme; nos outros, segue a página.
-    "--footer-bg": theme === "moria" ? "#4c2d18" : theme === "moria-noite" ? "#140c06" : t.surface,
-    "--footer-ink": theme === "moria" || theme === "moria-noite" ? "#f2e1cb" : t.ink,
-    "--footer-muted": theme === "moria" || theme === "moria-noite" ? "#e0c9a6" : t.muted,
-    "--footer-line": theme === "moria" || theme === "moria-noite" ? "rgba(242,225,203,0.18)" : t.line,
+    // Rodapé: café (Moriá) ou oliva profundo (Deserto) com letras creme; nos outros, segue a página.
+    "--footer-bg": footer.bg,
+    "--footer-ink": footer.ink,
+    "--footer-muted": footer.muted,
+    "--footer-line": footer.line,
   } as React.CSSProperties;
 }
 

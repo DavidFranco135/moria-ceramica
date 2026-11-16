@@ -773,7 +773,7 @@ class StoreSettings(BaseModel):
     hours: str = Field(default="", max_length=300)
     address: str = Field(default="", max_length=300)
     accent: str = Field(default="cafe", max_length=20)
-    theme: str = Field(default="moria", pattern="^(light|dark|moria)$")
+    theme: str = Field(default="moria", pattern="^(light|dark|moria|deserto)$")
     slides: list[StoreSlide] = Field(default_factory=list, max_length=10)
     highlights: list[StoreHighlight] = Field(default_factory=list, max_length=3)
     # Links de Reels/posts do Instagram mostrados na vitrine (vídeos incorporados).
