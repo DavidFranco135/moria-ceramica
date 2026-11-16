@@ -9,13 +9,13 @@ const config: Config = {
       colors: {
         neutral: {
           // Tons de texto bem claros (creme) para ler bem sobre o café escuro.
-          50: "#fdfaf4",
-          100: "#fbf6ee",
-          200: "#f1e9dc",
-          300: "#e6dccb",
-          400: "#d6c9b3",
-          500: "#bcad95",
-          600: "#8c7a64",
+          50: "#fffdf9",
+          100: "#fffbf4",
+          200: "#f8f2e8",
+          300: "#f0e8da",
+          400: "#e6dbc8",
+          500: "#d2c4ac",
+          600: "#a8957b",
           700: "#544130",
           800: "#3f3024",
           900: "#2c2119",
