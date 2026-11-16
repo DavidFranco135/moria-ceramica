@@ -265,10 +265,11 @@ function rgba(hex: string, alpha: number): string {
 }
 
 export function themeVars(accent: string, theme: RenderTheme): React.CSSProperties {
-  // Os temas da marca usam sempre a sua cor: café (Moriá) ou oliva (Deserto).
   const isMoria = theme === "moria" || theme === "moria-noite";
   const isDesert = theme === "deserto" || theme === "deserto-noite";
-  const a = isMoria ? ACCENTS.cafe : isDesert ? ACCENTS.deserto : (ACCENTS[accent] ?? ACCENTS.cafe);
+  // A cor de destaque escolhida vale em todos os temas (botões, selos, links);
+  // sem escolha válida, cada tema da marca usa a sua: café (Moriá) ou oliva (Deserto).
+  const a = ACCENTS[accent] ?? (isDesert ? ACCENTS.deserto : ACCENTS.cafe);
   const t = THEMES[theme] ?? THEMES.light;
   const isDark = theme === "dark" || theme === "moria-noite" || theme === "deserto-noite";
   const color = isDark && a.dark ? a.dark.color : a.color;

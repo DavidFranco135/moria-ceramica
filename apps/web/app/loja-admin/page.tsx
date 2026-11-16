@@ -816,14 +816,14 @@ export default function LojaAdminPage() {
                 </div>
                 {settings.theme === "deserto" && (
                   <p className="text-[11px] text-neutral-500">
-                    Rústico e elegante, lembrando o deserto: fundo areia de duna, cards cor de linho, botões em verde
-                    oliva; textos, faixa do topo e rodapé (com dunas) no marrom da logo, e um sol quente no alto da
-                    página.
+                    Rústico e elegante, lembrando o deserto: fundo areia de duna, cards cor de linho; textos, faixa do
+                    topo e rodapé (com dunas) no marrom da logo, e um sol quente no alto da página. Os botões usam a
+                    cor de destaque escolhida acima (Oliva do deserto é a original).
                   </p>
                 )}
                 {settings.theme === "moria" && (
                   <p className="text-[11px] text-neutral-500">
-                    Paleta da marca: fundo areia, cabeçalho e cards creme, textos e botões café, rodapé café (a cor de destaque acima vale só para os temas Claro e Escuro).
+                    Paleta da marca: fundo areia, cabeçalho e cards creme, textos café e rodapé café. Os botões usam a cor de destaque escolhida acima (Café é a original).
                   </p>
                 )}
               </div>
