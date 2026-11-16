@@ -8,13 +8,14 @@ const config: Config = {
       // tons de café/areia e o azul dos botões vira verde oliva.
       colors: {
         neutral: {
-          50: "#faf5ec",
-          100: "#f2e9da",
-          200: "#e4d8c5",
-          300: "#d0c1ab",
-          400: "#b3a089",
-          500: "#917c64",
-          600: "#6e5843",
+          // Tons de texto bem claros (creme) para ler bem sobre o café escuro.
+          50: "#fdfaf4",
+          100: "#fbf6ee",
+          200: "#f1e9dc",
+          300: "#e6dccb",
+          400: "#d6c9b3",
+          500: "#bcad95",
+          600: "#8c7a64",
           700: "#544130",
           800: "#3f3024",
           900: "#2c2119",
