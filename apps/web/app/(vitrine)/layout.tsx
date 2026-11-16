@@ -33,7 +33,9 @@ export default function LojaLayout({ children }: { children: React.ReactNode }) 
       <script
         dangerouslySetInnerHTML={{
           __html:
-            "try{var t=localStorage.getItem('moria-tema');if(t)document.documentElement.setAttribute('data-loja-tema',t)}catch(e){}",
+            "try{var t=localStorage.getItem('moria-tema');if(t)document.documentElement.setAttribute('data-loja-tema',t)}catch(e){}" +
+            // Guarda o aviso de "instalar app" se ele chegar antes do resto da página.
+            "window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__bip=e;});",
         }}
       />
       {children}
