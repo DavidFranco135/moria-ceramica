@@ -220,6 +220,8 @@ def get_public_store(db: Session, *, slug: str) -> PublicStoreResponse:
             background_url=settings.background_url,
             background_opacity=settings.background_opacity,
             background_header=settings.background_header,
+            installments_max=settings.installments_max,
+            installments_min=settings.installments_min,
         ),
         products=products,
     )

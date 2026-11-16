@@ -1,6 +1,14 @@
 import { IMG_WIDTH, imgSrc } from "@/lib/img";
 // x / y: enquadramento (0-100). Sem valores = foto inteira, sem corte.
-export type StoreSlide = { url: string; title: string; subtitle: string; x?: number | null; y?: number | null };
+// mobile_url: arte em pé para o celular ("" ou ausente = usa a mesma foto).
+export type StoreSlide = {
+  url: string;
+  title: string;
+  subtitle: string;
+  x?: number | null;
+  y?: number | null;
+  mobile_url?: string;
+};
 export type StoreHighlight = { title: string; text: string };
 // cover_url: foto principal da categoria na vitrine ("" = automática).
 // cover_x / cover_y: enquadramento da foto principal (0-100, 50 = centro).
@@ -78,6 +86,10 @@ export type StoreSettings = {
   background_url?: string;
   background_opacity?: number;
   background_header?: boolean;
+  // Parcelamento sem juros embaixo do preço: até N vezes (0 = não mostra),
+  // parcela mínima de R$ X (0 = sem mínimo).
+  installments_max?: number;
+  installments_min?: number;
 };
 
 export type StoreAdminResponse = { slug: string; name: string; settings: StoreSettings };
@@ -388,6 +400,25 @@ export function priceLabel(product: PublicProduct, qty = 1): string {
 // Preço cheio (riscado), só quando há desconto.
 export function fullPriceLabel(product: PublicProduct, qty = 1): string {
   return brl(product.price * qty);
+}
+
+// "3x de R$ 33,27 sem juros": maior número de parcelas (até `max`) em que cada
+// parcela fica acima do mínimo. null = não mostrar (desligado ou valor baixo).
+export function installmentPlan(
+  amount: number,
+  max: number | undefined,
+  min: number | undefined
+): { n: number; each: number } | null {
+  const limit = Math.floor(max ?? 0);
+  if (limit < 2 || !(amount > 0)) return null;
+  const n = (min ?? 0) > 0 ? Math.min(limit, Math.floor(round2(amount / (min as number)) + 1e-9)) : limit;
+  if (n < 2) return null;
+  return { n, each: round2(amount / n) };
+}
+
+export function installmentLabel(amount: number, max: number | undefined, min: number | undefined): string | null {
+  const plan = installmentPlan(amount, max, min);
+  return plan ? `${plan.n}x de ${brl(plan.each)} sem juros` : null;
 }
 
 export function discountBadge(product: PublicProduct): string {

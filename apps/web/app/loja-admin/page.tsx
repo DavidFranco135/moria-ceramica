@@ -158,6 +158,24 @@ export default function LojaAdminPage() {
     setMessage(null);
   }
 
+  // Arte em pé para o celular de um slide (sem ela, o celular usa a mesma foto).
+  async function handleSlideMobileUpload(index: number, event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !accessToken) return;
+    setIsUploading(true);
+    setError(null);
+    try {
+      const { url } = await uploadImage(`${orgPath}/uploads/image`, accessToken, file);
+      update({ slides: settings.slides.map((s, j) => (j === index ? { ...s, mobile_url: url } : s)) });
+      setMessage("Foto do celular adicionada. Clique em “Salvar alterações” para publicar.");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Falha ao enviar imagem.");
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
   async function handleSlideUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);
     event.target.value = "";
@@ -481,6 +499,7 @@ export default function LojaAdminPage() {
       const apiIsOld =
         // Descontos/selos/prazo: a API nova sempre devolve essas chaves.
         savedAny.promo_percent === undefined ||
+        savedAny.installments_max === undefined ||
         (body.product_order.length > 0 && savedAny.product_order === undefined) ||
         // Categorias: a API nova sempre devolve cover_url e cover_x.
         (body.categories.length > 0 && savedCats.some((c) => c.cover_url === undefined || c.cover_x === undefined)) ||
@@ -663,6 +682,38 @@ export default function LojaAdminPage() {
                             })
                           }
                         />
+                        {/* Foto para celular: arte em pé, mostrada só no celular (tela cheia). */}
+                        <div className="flex flex-wrap items-center gap-2 rounded border border-neutral-800 p-2">
+                          {slide.mobile_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={slide.mobile_url} alt="" className="h-16 w-11 rounded object-cover" />
+                          ) : null}
+                          <span className="flex-1 text-xs text-neutral-500">
+                            {slide.mobile_url
+                              ? "Foto do celular (em pé)."
+                              : "Celular: usa a mesma foto. Envie uma arte em pé (ex.: 1080×1620) para a capa ocupar a tela."}
+                          </span>
+                          <label className="cursor-pointer rounded border border-neutral-700 px-3 py-1 text-xs text-neutral-300 hover:border-neutral-500">
+                            {slide.mobile_url ? "Trocar" : "Foto para celular"}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              disabled={isUploading}
+                              onChange={(e) => handleSlideMobileUpload(i, e)}
+                            />
+                          </label>
+                          {slide.mobile_url && (
+                            <button
+                              onClick={() =>
+                                update({ slides: settings.slides.map((s, j) => (j === i ? { ...s, mobile_url: "" } : s)) })
+                              }
+                              className="rounded border border-neutral-700 px-3 py-1 text-xs text-neutral-400 hover:border-neutral-500"
+                            >
+                              Remover
+                            </button>
+                          )}
+                        </div>
                       </div>
                       <div className="flex flex-wrap gap-2 sm:flex-col">
                         <button
@@ -1100,6 +1151,40 @@ export default function LojaAdminPage() {
                   onChange={(e) => update({ production_days: e.target.value })}
                 />
               </label>
+              <div className="space-y-1">
+                <span className="text-xs text-neutral-500">
+                  Parcelamento sem juros — aparece embaixo do preço (ex.: “ou 3x de R$ 33,27 sem juros”). Máximo 0 = não mostra.
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="space-y-1">
+                    <span className="text-[11px] text-neutral-500">Até quantas vezes</span>
+                    <select
+                      className={input}
+                      value={settings.installments_max ?? 0}
+                      onChange={(e) => update({ installments_max: Number(e.target.value) })}
+                    >
+                      <option value={0}>Não mostrar</option>
+                      {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
+                        <option key={n} value={n}>
+                          {n}x sem juros
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-[11px] text-neutral-500">Parcela mínima (R$)</span>
+                    <input
+                      className={input}
+                      type="number"
+                      min={0}
+                      step="1"
+                      placeholder="Ex.: 30"
+                      value={settings.installments_min ? settings.installments_min : ""}
+                      onChange={(e) => update({ installments_min: Number(e.target.value) || 0 })}
+                    />
+                  </label>
+                </div>
+              </div>
               <label className="flex items-start gap-3 rounded-lg border border-neutral-800 p-3">
                 <input
                   type="checkbox"

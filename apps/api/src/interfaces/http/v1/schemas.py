@@ -725,6 +725,8 @@ class StoreSlide(BaseModel):
     # Enquadramento da foto (0-100). Sem valores = foto inteira, sem corte (padrão).
     x: float | None = Field(default=None, ge=0, le=100)
     y: float | None = Field(default=None, ge=0, le=100)
+    # Versão da arte para celular (em pé). Vazio = usa a mesma foto.
+    mobile_url: str = Field(default="", max_length=2000)
 
 
 class CartTier(BaseModel):
@@ -853,6 +855,10 @@ class StoreSettings(BaseModel):
     background_url: str = Field(default="", max_length=2000)
     background_opacity: int = Field(default=18, ge=3, le=60)
     background_header: bool = False
+    # Parcelamento sem juros mostrado embaixo do preço: até N vezes (0 = não
+    # mostra), com parcela mínima de R$ X.
+    installments_max: int = Field(default=0, ge=0, le=24)
+    installments_min: float = Field(default=0, ge=0, le=100_000)
 
     @field_validator("product_discounts")
     @classmethod
@@ -1002,6 +1008,8 @@ class PublicStoreSettings(BaseModel):
     background_url: str = ""
     background_opacity: int = 18
     background_header: bool = False
+    installments_max: int = 0
+    installments_min: float = 0
 
 
 class PublicStoreResponse(BaseModel):

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { PublicProduct } from "@/lib/store";
+import { installmentLabel } from "@/lib/store";
 import {
   discountBadge,
   formatReadyDate,
@@ -499,6 +500,17 @@ export function PriceTag({
       )}
     </span>
   );
+}
+
+// Parcelamento sem juros configurado em Minha Loja (max 0 = desligado).
+export const InstallmentsContext = createContext<{ max: number; min: number }>({ max: 0, min: 0 });
+
+// "ou 3x de R$ 33,27 sem juros" embaixo do preço.
+export function InstallmentsLine({ amount, className = "" }: { amount: number; className?: string }) {
+  const { max, min } = useContext(InstallmentsContext);
+  const label = installmentLabel(amount, max, min);
+  if (!label) return null;
+  return <p className={`text-xs text-[var(--muted)] ${className}`}>ou {label}</p>;
 }
 
 // Selo "% OFF" sobre a foto do card.

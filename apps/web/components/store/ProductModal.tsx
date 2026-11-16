@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CartLine, PublicProduct } from "@/lib/store";
-import { priceLabel, whatsappLink } from "@/lib/store";
+import { priceLabel, unitPrice, whatsappLink } from "@/lib/store";
 import { useOverlayHistory } from "@/lib/use-overlay-history";
 import {
   IconChevronLeft,
@@ -14,7 +14,7 @@ import {
   useSwipe,
 } from "./ui";
 import { IMG_WIDTH, imgSrc } from "@/lib/img";
-import { IconCube, Model3D, PriceTag, ProductionEta, RelatedProducts, ShareProductButton } from "./extras";
+import { IconCube, InstallmentsLine, Model3D, PriceTag, ProductionEta, RelatedProducts, ShareProductButton } from "./extras";
 
 export function ProductModal({
   product,
@@ -270,6 +270,7 @@ export function ProductModal({
             >
               <PriceTag product={product} badge />
             </p>
+            {!product.price_on_request && <InstallmentsLine amount={unitPrice(product)} className="text-sm" />}
             {product.promo_excluded && promoActive && (
               <p className="text-xs text-[var(--muted)]">Este produto não participa das promoções da loja.</p>
             )}

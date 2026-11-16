@@ -189,6 +189,7 @@ export function MenuButton({ onClick }: { onClick: () => void }) {
 }
 
 export function MobileMenu({
+  logoSrc = "",
   open,
   onClose,
   storeName,
@@ -201,6 +202,7 @@ export function MobileMenu({
   onTab,
   onCategory,
 }: NavProps & {
+  logoSrc?: string;
   open: boolean;
   onClose: () => void;
   storeName: string;
@@ -266,12 +268,18 @@ export function MobileMenu({
         }`}
         style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <div className="flex items-center justify-between gap-3 border-b border-[var(--line)] px-5 py-4">
-          <span className="truncate font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--ink)]">{storeName}</span>
+        {/* Logo no centro, maior; o X fica no canto. */}
+        <div className="relative flex items-center justify-center gap-3 border-b border-[var(--line)] px-14 py-5">
+          {logoSrc ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logoSrc} alt={storeName} className="h-20 w-auto max-w-[220px] object-contain" />
+          ) : (
+            <span className="truncate font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--ink)]">{storeName}</span>
+          )}
           <button
             onClick={onClose}
             aria-label="Fechar menu"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--line)] text-[var(--ink)] active:scale-95"
+            className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 shrink-0 items-center justify-center rounded-full border border-[var(--line)] text-[var(--ink)] active:scale-95"
           >
             <IconClose className="h-5 w-5" />
           </button>

@@ -440,3 +440,19 @@ def test_store_accepts_desert_theme(client: TestClient):
     url = f"/api/v1/organizations/{org_id}/store"
     assert client.put(url, json={"theme": "deserto"}, headers=headers).status_code == 200
     assert client.put(url, json={"theme": "praia"}, headers=headers).status_code == 422
+
+
+def test_store_installments_and_mobile_slide(client: TestClient):
+    org_id, slug, headers = _setup(client)
+    url = f"/api/v1/organizations/{org_id}/store"
+    payload = {
+        "installments_max": 3,
+        "installments_min": 30,
+        "slides": [{"url": "https://x/a.jpg", "title": "", "subtitle": "", "mobile_url": "https://x/a-cel.jpg"}],
+    }
+    assert client.put(url, json=payload, headers=headers).status_code == 200
+    store_use_cases._public_cache.clear()
+    s = client.get(f"/api/v1/public/stores/{slug}").json()["settings"]
+    assert (s["installments_max"], s["installments_min"]) == (3, 30)
+    assert s["slides"][0]["mobile_url"] == "https://x/a-cel.jpg"
+    assert client.put(url, json={"installments_max": 99}, headers=headers).status_code == 422

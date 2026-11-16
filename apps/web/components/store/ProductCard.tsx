@@ -1,10 +1,10 @@
 "use client";
 
 import type { PublicProduct } from "@/lib/store";
-import { priceLabel } from "@/lib/store";
+import { priceLabel, unitPrice } from "@/lib/store";
 import { IconMinus, IconPlus } from "./ui";
 import { IMG_WIDTH, imgSrc } from "@/lib/img";
-import { DiscountRibbon, IconCube, PriceTag } from "./extras";
+import { DiscountRibbon, IconCube, InstallmentsLine, PriceTag } from "./extras";
 import { flyToCart } from "./fx";
 
 export function ProductCard({
@@ -128,6 +128,7 @@ export function ProductCard({
               <PriceTag product={product} finalClassName={product.discount_percent ? "text-[#c2372f]" : ""} />
             </p>
           )}
+          {!product.price_on_request && <InstallmentsLine amount={unitPrice(product)} className="-mt-1" />}
 
           {!product.available ? (
             <span className="text-xs text-[var(--muted)]">Indisponível</span>

@@ -110,15 +110,15 @@ export function PromoPopup({
         aria-modal="true"
         aria-label="Descontos da loja"
         onClick={(e) => e.stopPropagation()}
-        className="relative max-h-[92vh] w-full max-w-lg animate-sheet-up overflow-y-auto rounded-[28px] bg-[var(--surface)] text-[var(--ink)] shadow-2xl"
+        className="relative max-h-[92vh] w-full max-w-lg animate-sheet-up overflow-y-auto overflow-x-hidden rounded-[28px] bg-[var(--surface)] text-[var(--ink)] shadow-2xl"
       >
-        <div className="relative bg-[var(--brand-2)] px-7 pb-7 pt-8 text-center text-[var(--brand-2-ink)]">
+        <div className="relative overflow-hidden bg-[var(--brand-2)] px-7 pb-7 pt-8 text-center text-[var(--brand-2-ink)]">
           <div className="pointer-events-none absolute -right-10 -top-16 h-44 w-44 rounded-full bg-[#c47a5a]/40 blur-3xl" />
           <button
             type="button"
             aria-label="Fechar"
             onClick={onClose}
-            className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-2xl leading-none text-[var(--accent-ink)]/80 transition hover:bg-white/10 hover:text-white"
+            className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full text-2xl leading-none text-[var(--accent-ink)]/80 transition hover:bg-white/10 hover:text-white"
           >
             ×
           </button>

@@ -42,6 +42,7 @@ import {
   productLink,
   usePrefersDark,
   useStoreServiceWorker,
+  InstallmentsContext,
 } from "./extras";
 
 const TABS = ["Início", "Catálogo", "Como pedir", "Contato"] as const;
@@ -639,8 +640,10 @@ export function Storefront({ slug }: { slug: string }) {
     { title: "Combine e receba", text: "Confirmamos valor, prazo e frete. Pagamento: 50% na confirmação e 50% antes da entrega ou envio, por Pix. Produção em até 60 dias úteis." },
   ];
 
+  const installments = { max: settings.installments_max ?? 0, min: settings.installments_min ?? 0 };
+
   return (
-    <>
+    <InstallmentsContext.Provider value={installments}>
     {splash}
     <div
       style={vars}
@@ -657,16 +660,22 @@ export function Storefront({ slug }: { slug: string }) {
         style={background?.header}
         className="fx-header sticky top-0 z-50 border-b border-[var(--line)] bg-[var(--surface-glass)] backdrop-blur-xl">
         <AnnouncementBar items={announcements} />
-        <div className="fx-head-row mx-auto flex max-w-[1600px] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
+        <div className="fx-head-row relative mx-auto flex max-w-[1600px] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
           <MenuButton onClick={() => setMenuOpen(true)} />
-          <button onClick={() => goTab(0)} className="flex min-w-0 flex-1 items-center gap-3 text-left lg:flex-none">
+          {/* No celular a logo fica no centro do cabeçalho (menu à esquerda, busca e pedido à direita). */}
+          <button
+            onClick={() => goTab(0)}
+            className={`flex min-w-0 items-center gap-3 text-left lg:static lg:flex-none lg:translate-x-0 ${
+              settings.logo_url ? "absolute left-1/2 -translate-x-1/2" : "flex-1"
+            }`}
+          >
             {settings.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={imgSrc(logoForTheme(settings.logo_url, effectiveTheme === "moria-noite" || effectiveTheme === "deserto-noite" || effectiveTheme === "dark"), IMG_WIDTH.thumb)}
                 alt={storeName}
                 // Logo inteira, no formato dela (redonda, larga ou quadrada).
-                className="fx-logo h-12 w-auto max-w-[170px] shrink-0 object-contain sm:h-16 sm:max-w-[200px]"
+                className="fx-logo h-14 w-auto max-w-[150px] shrink-0 object-contain sm:h-16 sm:max-w-[200px]"
               />
             ) : (
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent)] font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--accent-ink)] shadow-md">
@@ -733,6 +742,11 @@ export function Storefront({ slug }: { slug: string }) {
       </header>
 
       <MobileMenu
+        logoSrc={
+          settings.logo_url
+            ? imgSrc(logoForTheme(settings.logo_url, effectiveTheme === "moria-noite" || effectiveTheme === "deserto-noite" || effectiveTheme === "dark"), IMG_WIDTH.thumb)
+            : ""
+        }
         open={menuOpen}
         onClose={closeMenu}
         storeName={storeName}
@@ -751,8 +765,8 @@ export function Storefront({ slug }: { slug: string }) {
           {tab === 0 && (
             <div className="space-y-20 sm:space-y-28">
               <div className="space-y-10 sm:space-y-14">
-                {/* No computador a capa sai do container e vai de ponta a ponta. */}
-                <div className="lg:relative lg:left-1/2 lg:-mt-8 lg:w-screen lg:-translate-x-1/2">
+                {/* No celular e no computador a capa vai de ponta a ponta. */}
+                <div className="-mx-4 -mt-6 sm:mx-0 sm:mt-0 lg:relative lg:left-1/2 lg:-mt-8 lg:w-screen lg:-translate-x-1/2">
                 <HeroSlider
                   slides={slides}
                   storeName={storeName}
@@ -1394,6 +1408,6 @@ export function Storefront({ slug }: { slug: string }) {
         rules={discountRules}
       />
     </div>
-    </>
+    </InstallmentsContext.Provider>
   );
 }

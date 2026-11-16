@@ -18,7 +18,7 @@ import { focusStyle } from "@/lib/focus";
 import { useOverlayHistory } from "@/lib/use-overlay-history";
 import { IconClose, IconMinus, IconPlus, IconTrash, IconWhatsapp } from "./ui";
 import { IMG_WIDTH, imgSrc } from "@/lib/img";
-import { ProductionEta, TrustBadges } from "./extras";
+import { InstallmentsLine, ProductionEta, TrustBadges } from "./extras";
 
 export type CustomerInfo = { name: string; extra: string };
 
@@ -277,6 +277,7 @@ export function CartDrawer({
               {anyOnRequest && total > 0 && (
                 <p className="-mt-2 text-right text-xs text-[var(--muted)]">+ itens com preço a consultar</p>
               )}
+              {total > 0 && <InstallmentsLine amount={total} className="-mt-2 text-right" />}
               <ProductionEta text={productionDays} variant="inline" className="text-xs" />
               <a
                 href={href}
