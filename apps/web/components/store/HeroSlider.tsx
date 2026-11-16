@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { StoreSlide } from "@/lib/store";
+import { slideMobileUrl } from "@/lib/store";
 import { IconArrowRight, IconChevronLeft, IconChevronRight, IconWhatsapp, useSwipe } from "./ui";
 import { IMG_WIDTH, imgSrc } from "@/lib/img";
 
@@ -118,7 +119,7 @@ export function HeroSlider({
               formato da foto não bate com o da capa (ex.: celular). */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={imgSrc(slide.mobile_url || slide.url, IMG_WIDTH.hero)}
+            src={imgSrc(slide.url, IMG_WIDTH.hero)}
             alt=""
             aria-hidden
             loading={i === 0 ? "eager" : "lazy"}
@@ -129,7 +130,7 @@ export function HeroSlider({
           {/* A foto em si: inteira (sem corte) ou enquadrada, se o lojista escolheu. */}
           {/* Arte em pé no celular, quando o lojista enviou uma. */}
           <picture className="contents">
-          {slide.mobile_url && <source media={MOBILE_QUERY} srcSet={imgSrc(slide.mobile_url, IMG_WIDTH.hero)} />}
+          {slideMobileUrl(slide) && <source media={MOBILE_QUERY} srcSet={imgSrc(slideMobileUrl(slide), IMG_WIDTH.hero)} />}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={imgSrc(slide.url, IMG_WIDTH.hero)}

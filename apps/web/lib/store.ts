@@ -149,6 +149,17 @@ export const STORE_SLUG = process.env.NEXT_PUBLIC_STORE_SLUG || "moria-ceramica"
 export const BRAND_LOGO = "/brand/moria-logo-wide.png";
 export const BRAND_LOGO_LIGHT = "/brand/moria-logo-wide-claro.png";
 // Fundo da loja: camada fixa e esmaecida atrás do conteúdo (+ cabeçalho).
+// Artes em pé (celular) das capas da Moriá já enviadas: valem até o lojista
+// escolher outra em "Foto para celular" no slide.
+const MOBILE_SLIDE_ART: Record<string, string> = {
+  "https://i.ibb.co/tpMSSVF4/f901b6db4ec2.png": "/brand/slide-mesa-celular.jpg",
+  "https://i.ibb.co/FL1tXZQy/0f769a0f4856.jpg": "/brand/slide-cuidados-celular.jpg",
+  "/brand/slide-cuidados.jpg": "/brand/slide-cuidados-celular.jpg",
+};
+export function slideMobileUrl(slide: { url: string; mobile_url?: string }): string {
+  return slide.mobile_url || MOBILE_SLIDE_ART[slide.url] || "";
+}
+
 export const BRICK_TEXTURE = "/brand/textura-tijolos-cor.webp";
 export function storeBackground(s: {
   background_style?: string;
