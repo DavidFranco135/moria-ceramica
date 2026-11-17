@@ -45,6 +45,16 @@ import {
   InstallmentsContext,
 } from "./extras";
 
+// Texto da seção "Quem somos" (ao lado da foto da Karina). Se a dona escrever
+// outro texto em Minha Loja → "Quem somos", ele substitui este.
+const QUEM_SOMOS_PARAGRAPHS = [
+  "Meu nome é Karina Corrêa, sou ceramista, filha do Deus Altíssimo, esposa e mãe de dois filhos.",
+  "Minha história com a cerâmica começou em 2025, quando comecei a experimentar a modelagem em casa. Em janeiro de 2026, decidi me dedicar a esse universo.",
+  "A cerâmica chegou à minha vida em um momento de muitas descobertas pessoais. Ao tentar moldar o barro, descobri que também estava sendo moldada. Encontrei na cerâmica um espaço de conexão e descoberta. Foi através dela que reconheci capacidades que antes acreditava não ter e encontrei uma nova forma de me redescobrir.",
+  "Assim nasceu a Moriá Cerâmica: muito mais do que um ateliê, uma expressão da minha fé, da minha história e da minha gratidão a Deus. Moriá representa para mim um lugar de entrega, encontro e confiança.",
+  "Acredito que cada peça carrega muito mais do que formas e texturas. Carrega tempo, dedicação, sentimentos e uma história por trás de cada criação. Mais do que uma peça, desejo que cada criação da Moriá leve consigo um pouco dessa história e do propósito com que foi feita.",
+];
+
 const TABS = ["Início", "Catálogo", "Como pedir", "Contato"] as const;
 
 function useStoredState<T>(key: string, initial: T): [T, (next: T | ((prev: T) => T)) => void] {
@@ -896,23 +906,53 @@ export function Storefront({ slug }: { slug: string }) {
                 </section>
               </Reveal>
 
-              {settings.about && (
-                <Reveal>
-                  <section className="grid gap-8 rounded-[32px] border border-[var(--line)] bg-[var(--surface)] p-8 sm:p-12 lg:grid-cols-[1fr_1.4fr]">
-                    <div className="space-y-3">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-text)]">
-                        Sobre nós
+              <Reveal>
+                <section
+                  aria-labelledby="quem-somos"
+                  className="grid items-center gap-8 overflow-hidden rounded-[32px] border border-[var(--line)] bg-[var(--surface)] p-5 sm:p-8 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)] md:gap-12 lg:p-12"
+                >
+                  {/* Foto inteira (sem corte), no formato dela. */}
+                  <picture className="mx-auto block w-full max-w-sm overflow-hidden rounded-[24px] bg-[var(--accent-soft)] shadow-[0_24px_60px_-30px_rgba(0,0,0,0.45)] md:max-w-none">
+                    {!settings.about_photo_url && <source srcSet="/brand/quem-somos-karina.webp" type="image/webp" />}
+                    <img
+                      src={settings.about_photo_url ? imgSrc(settings.about_photo_url, IMG_WIDTH.large) : "/brand/quem-somos-karina.jpg"}
+                      alt="Karina Corrêa no torno, no ateliê da Moriá Cerâmica"
+                      width={1230}
+                      height={1279}
+                      loading="lazy"
+                      className="block h-auto w-full"
+                    />
+                  </picture>
+                  <div className="space-y-5">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-text)]">
+                      Quem somos
+                    </p>
+                    <div className="space-y-1">
+                      <p className="font-[family-name:var(--font-display)] text-2xl italic text-[var(--accent-text)] sm:text-3xl">
+                        Oi, prazer!
                       </p>
-                      <h2 className="font-[family-name:var(--font-display)] text-3xl font-semibold tracking-tight sm:text-4xl">
-                        Feita à mão, peça por peça.
+                      <h2
+                        id="quem-somos"
+                        className="font-[family-name:var(--font-display)] text-4xl font-semibold tracking-tight sm:text-5xl"
+                      >
+                        Eu sou a Karina
                       </h2>
                     </div>
-                    <p className="whitespace-pre-line text-base leading-relaxed text-[var(--muted)]">
-                      {settings.about}
+                    <div className="space-y-4 text-base leading-relaxed text-[var(--muted)] sm:text-lg">
+                      {(settings.about_story?.trim()
+                        ? settings.about_story.split(/\n\s*\n/).map((t) => t.trim()).filter(Boolean)
+                        : QUEM_SOMOS_PARAGRAPHS
+                      ).map((t) => (
+                        <p key={t} className="whitespace-pre-line">{t}</p>
+                      ))}
+                    </div>
+                    <p className="font-[family-name:var(--font-display)] text-xl italic text-[var(--accent-text)]">
+                      {settings.about_title?.trim() || "Barro nas mãos do Oleiro. Cada peça moldada com propósito."}
                     </p>
-                  </section>
-                </Reveal>
-              )}
+                    <p className="text-sm font-medium text-[var(--accent-text)]">Karina Corrêa · Moriá Cerâmica</p>
+                  </div>
+                </section>
+              </Reveal>
 
               {reelEmbeds.length > 0 && (
                 <section className="space-y-6">

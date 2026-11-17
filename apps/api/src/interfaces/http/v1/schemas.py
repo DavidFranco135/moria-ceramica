@@ -770,6 +770,11 @@ class StoreSettings(BaseModel):
     logo_url: str = Field(default="", max_length=2000)
     tagline: str = Field(default="", max_length=200)
     about: str = Field(default="", max_length=2000)
+    # Seção "Nossa história": foto da ceramista e frase de título.
+    about_title: str = Field(default="", max_length=120)
+    about_photo_url: str = Field(default="", max_length=2000)
+    # Texto da história ("Quem somos"); vazio = texto da Karina que vem no site.
+    about_story: str = Field(default="", max_length=4000)
     whatsapp: str = Field(default="5521984986236", max_length=20)
     instagram: str = Field(default="moriaceramica.atelie", max_length=120)
     hours: str = Field(default="", max_length=300)
@@ -983,6 +988,9 @@ class PublicStoreSettings(BaseModel):
     logo_url: str
     tagline: str
     about: str
+    about_title: str = ""
+    about_photo_url: str = ""
+    about_story: str = ""
     whatsapp: str
     instagram: str
     hours: str

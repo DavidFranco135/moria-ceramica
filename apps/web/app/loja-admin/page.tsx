@@ -229,6 +229,22 @@ export default function LojaAdminPage() {
     }
   }
 
+  async function handleAboutPhotoUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !accessToken) return;
+    setIsUploading(true);
+    setError(null);
+    try {
+      const { url } = await uploadImage(`${orgPath}/uploads/image`, accessToken, file);
+      update({ about_photo_url: url });
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Falha ao enviar a foto.");
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
   function moveSlide(index: number, delta: number) {
     const target = index + delta;
     if (target < 0 || target >= settings.slides.length) return;
@@ -790,9 +806,33 @@ export default function LojaAdminPage() {
                   <label className="text-xs text-neutral-500">Endereço / região de entrega</label>
                   <textarea className={input} rows={2} value={settings.address} placeholder="Rio de Janeiro - RJ" maxLength={300} onChange={(e) => update({ address: e.target.value })} />
                 </div>
-                <div className="space-y-1 sm:col-span-2">
-                  <label className="text-xs text-neutral-500">Sobre a loja</label>
-                  <textarea className={input} rows={4} value={settings.about} placeholder="Conte sua história, seus diferenciais…" maxLength={2000} onChange={(e) => update({ about: e.target.value })} />
+                <div className="space-y-3 sm:col-span-2">
+                  <p className="text-sm font-medium text-neutral-300">Quem somos (foto e história na página inicial)</p>
+                  <div className="flex flex-wrap items-center gap-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={settings.about_photo_url ? imgSrc(settings.about_photo_url, IMG_WIDTH.thumb) : "/brand/quem-somos-karina.jpg"}
+                      alt=""
+                      className="h-20 w-20 rounded-xl object-cover"
+                    />
+                    <label className="cursor-pointer rounded-lg border border-neutral-700 px-3 py-2 text-sm">
+                      Trocar foto
+                      <input type="file" accept="image/*" className="hidden" onChange={handleAboutPhotoUpload} />
+                    </label>
+                    {settings.about_photo_url && (
+                      <button type="button" onClick={() => update({ about_photo_url: "" })} className="text-sm text-neutral-400 underline">
+                        Voltar à foto padrão
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-neutral-500">Frase final</label>
+                    <input className={input} value={settings.about_title ?? ""} placeholder="Barro nas mãos do Oleiro. Cada peça moldada com propósito." maxLength={120} onChange={(e) => update({ about_title: e.target.value })} />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-neutral-500">História (deixe vazio para usar o texto da Karina; separe parágrafos com uma linha em branco)</label>
+                    <textarea className={input} rows={8} value={settings.about_story ?? ""} placeholder="Meu nome é Karina Corrêa…" maxLength={4000} onChange={(e) => update({ about_story: e.target.value })} />
+                  </div>
                 </div>
               </div>
             </Card>

@@ -47,6 +47,9 @@ export type StoreSettings = {
   logo_url: string;
   tagline: string;
   about: string;
+  about_title?: string;
+  about_photo_url?: string;
+  about_story?: string;
   whatsapp: string;
   instagram: string;
   hours: string;
