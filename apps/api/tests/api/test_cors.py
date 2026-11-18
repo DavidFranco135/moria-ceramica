@@ -12,12 +12,20 @@ def test_moria_site_and_previews_are_allowed(client: TestClient):
     for origin in (
         "https://moria-ceramica.pages.dev",
         "https://abc123.moria-ceramica.pages.dev",
+        "https://moriaceramica.com.br",
+        "https://www.moriaceramica.com.br",
     ):
         response = _preflight(client, origin)
         assert response.headers.get("access-control-allow-origin") == origin
 
 
 def test_other_pages_dev_sites_are_not_allowed(client: TestClient):
-    for origin in ("https://evil.pages.dev", "https://moria-ceramica.pages.dev.evil.com"):
+    for origin in (
+        "https://evil.pages.dev",
+        "https://moria-ceramica.pages.dev.evil.com",
+        "https://moriaceramica.com.br.evil.com",
+        "http://moriaceramica.com.br",
+        "https://evil.moriaceramica.com.br",
+    ):
         response = _preflight(client, origin)
         assert response.headers.get("access-control-allow-origin") is None

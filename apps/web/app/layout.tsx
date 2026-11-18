@@ -3,7 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://moria-ceramica.pages.dev"),
+  metadataBase: new URL("https://moriaceramica.com.br"),
   title: "Moriá Cerâmica",
   description: "Moriá Cerâmica — cerâmica artesanal, utilitária, feita à mão.",
   manifest: "/manifest.json",
