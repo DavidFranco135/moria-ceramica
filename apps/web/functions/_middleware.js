@@ -196,10 +196,24 @@ function robots(url) {
   return new Response(body, { headers: { "Content-Type": "text/plain; charset=utf-8" } });
 }
 
+// Domínio próprio: www → endereço principal; gestor.<domínio> abre o login.
+const MAIN_HOST = "moriaceramica.com.br";
+
 export async function onRequest(context) {
   const { request, next } = context;
   if (request.method !== "GET") return next();
   const url = new URL(request.url);
+  if (url.hostname === `www.${MAIN_HOST}`) {
+    url.hostname = MAIN_HOST;
+    return Response.redirect(url.toString(), 301);
+  }
+  if (url.hostname.startsWith("gestor.")) {
+    // O gestor não aparece no Google.
+    if (url.pathname === "/robots.txt")
+      return new Response("User-agent: *\nDisallow: /\n", { headers: { "Content-Type": "text/plain" } });
+    if (url.pathname === "/" || url.pathname === "") return Response.redirect(`${url.origin}/login`, 302);
+    return next();
+  }
   if (url.pathname === "/sitemap.xml") return sitemap(url);
   if (url.pathname === "/robots.txt") return robots(url);
 
