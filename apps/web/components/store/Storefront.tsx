@@ -5,6 +5,8 @@ import Link from "next/link";
 import { apiFetch, ApiError } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/format";
 import type { CartLine, OrderLine, PublicProduct, PublicStore, StoreSlide } from "@/lib/store";
+import { lineChoices, lineKey } from "@/lib/store";
+import { CareSection } from "./care";
 import { computeTotals, darkVariant, storeBackground, formatPercent, isBrandLogo, promoNotices, unitPrice, formatWhatsappDisplay, logoForTheme, instagramEmbedUrl, priceLabel, themeVars, whatsappLink } from "@/lib/store";
 import { focusStyle } from "@/lib/focus";
 import { matchesSearch } from "@/lib/search";
@@ -326,8 +328,11 @@ export function Storefront({ slug }: { slug: string }) {
   const orderLines: OrderLine[] = useMemo(
     () =>
       lines
-        .map((l) => ({ product: productsById.get(l.id), qty: l.qty, note: l.note }))
-        .filter((l): l is OrderLine => !!l.product && l.product.available),
+        .flatMap((l): OrderLine[] => {
+          const product = productsById.get(l.id);
+          if (!product || !product.available) return [];
+          return [{ product, qty: l.qty, note: l.note, key: lineKey(l), choices: lineChoices(product, l.opts) }];
+        }),
     [lines, productsById]
   );
   const units = orderLines.reduce((sum, l) => sum + l.qty, 0);
@@ -372,17 +377,19 @@ export function Storefront({ slug }: { slug: string }) {
     return Math.min(max, qty);
   };
 
+  // Uma linha por produto + combinação de opções (ex.: a mesma xícara em duas cores).
   const setLine = useCallback(
-    (id: string, qty: number, note?: string) => {
+    (id: string, qty: number, note?: string, opts?: Record<string, string>) => {
+      const key = lineKey({ id, opts });
       setLines((prev) => {
-        const existing = prev.find((l) => l.id === id);
+        const existing = prev.find((l) => lineKey(l) === key);
         const nextQty = clampQty(id, qty);
-        if (nextQty <= 0) return prev.filter((l) => l.id !== id);
+        if (nextQty <= 0) return prev.filter((l) => lineKey(l) !== key);
         if (existing)
           return prev.map((l) =>
-            l.id === id ? { ...l, qty: nextQty, note: note ?? l.note } : l
+            lineKey(l) === key ? { ...l, qty: nextQty, note: note ?? l.note } : l
           );
-        return [...prev, { id, qty: nextQty, note: note ?? "" }];
+        return [...prev, { id, qty: nextQty, note: note ?? "", ...(opts && Object.keys(opts).length ? { opts } : {}) }];
       });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -627,7 +634,7 @@ export function Storefront({ slug }: { slug: string }) {
     }, 80);
   };
 
-  const qtyOf = (id: string) => lines.find((l) => l.id === id)?.qty ?? 0;
+  const qtyOf = (id: string) => lines.filter((l) => l.id === id).reduce((sum, l) => sum + l.qty, 0);
 
   const cardFor = (product: PublicProduct) => (
     <ProductCard
@@ -636,16 +643,18 @@ export function Storefront({ slug }: { slug: string }) {
       qty={qtyOf(product.id)}
       onOpen={() => setOpenProductId(product.id)}
       onAdd={() => {
+        // Produto com cores/opções: abre a peça para escolher antes.
+        if (product.options?.length) return setOpenProductId(product.id);
         setLine(product.id, 1);
         showToast(`${product.name} adicionado ao pedido`);
       }}
-      onChangeQty={(q) => setLine(product.id, q)}
+      onChangeQty={(q) => (product.options?.length ? setOpenProductId(product.id) : setLine(product.id, q))}
     />
   );
 
   const steps = [
     { title: "Escolha seus produtos", text: "Navegue pelo catálogo e toque na peça para ver fotos, medidas e detalhes." },
-    { title: "Monte seu pedido", text: "Adicione ao pedido, ajuste a quantidade e escreva a cor do esmalte ou o nome e a frase para personalizar." },
+    { title: "Monte seu pedido", text: "Escolha a argila e a cor do esmalte (quando houver), ajuste a quantidade e escreva o nome ou a frase para personalizar." },
     { title: "Envie pelo WhatsApp", text: "Um toque e o pedido completo vai pronto para o nosso WhatsApp, sem cadastro." },
     { title: "Combine e receba", text: "Confirmamos valor, prazo e frete. Pagamento: 50% na confirmação e 50% antes da entrega ou envio, por Pix. Produção em até 60 dias úteis." },
   ];
@@ -871,6 +880,10 @@ export function Storefront({ slug }: { slug: string }) {
                       </Reveal>
                     ))}
                 </div>
+              )}
+
+              {settings.care_enabled && (
+                <CareSection title={settings.care_title} items={settings.care_items ?? []} tips={settings.care_tips ?? []} />
               )}
 
               <Reveal>
@@ -1424,12 +1437,13 @@ export function Storefront({ slug }: { slug: string }) {
           productionDays={settings.production_days}
           shareUrl={productLink(openProduct.id)}
           promoActive={(settings.promo_percent ?? 0) > 0 || (settings.cart_tiers ?? []).length > 0}
-          line={lines.find((l) => l.id === openProduct.id)}
+          lines={lines.filter((l) => l.id === openProduct.id)}
+          care={settings.care_enabled ? { items: settings.care_items ?? [], tips: settings.care_tips ?? [] } : undefined}
           storeName={storeName}
           whatsapp={settings.whatsapp}
           onClose={() => setOpenProductId(null)}
-          onSave={(qty, note) => {
-            setLine(openProduct.id, qty, note);
+          onSave={(qty, note, opts) => {
+            setLine(openProduct.id, qty, note, opts);
             setOpenProductId(null);
             showToast(`${openProduct.name} no seu pedido`);
           }}
@@ -1444,11 +1458,14 @@ export function Storefront({ slug }: { slug: string }) {
         customer={customer}
         onCustomer={setCustomer}
         onClose={() => setCartOpen(false)}
-        onQty={(id, qty) => setLine(id, qty)}
-        onNote={(id, note) =>
-          setLines((prev) => prev.map((l) => (l.id === id ? { ...l, note } : l)))
+        onQty={(key, qty) => {
+          const l = lines.find((x) => lineKey(x) === key);
+          if (l) setLine(l.id, qty, undefined, l.opts);
+        }}
+        onNote={(key, note) =>
+          setLines((prev) => prev.map((l) => (lineKey(l) === key ? { ...l, note } : l)))
         }
-        onRemove={(id) => setLines((prev) => prev.filter((l) => l.id !== id))}
+        onRemove={(key) => setLines((prev) => prev.filter((l) => lineKey(l) !== key))}
         onClear={() => setLines([])}
         onBrowse={() => goTab(1)}
         onSent={() => showToast("Abrindo o WhatsApp…")}

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { apiFetch, ApiError, uploadImage } from "@/lib/api-client";
+import { CareEditor, OptionsEditor } from "@/components/StoreExtrasAdmin";
 import { formatCurrency } from "@/lib/format";
 import type { Product } from "@/lib/types";
 import type { StoreAdminResponse, StoreSettings } from "@/lib/store";
@@ -516,6 +517,7 @@ export default function LojaAdminPage() {
         // Descontos/selos/prazo: a API nova sempre devolve essas chaves.
         savedAny.promo_percent === undefined ||
         savedAny.installments_max === undefined ||
+        savedAny.option_groups === undefined ||
         (body.product_order.length > 0 && savedAny.product_order === undefined) ||
         // Categorias: a API nova sempre devolve cover_url e cover_x.
         (body.categories.length > 0 && savedCats.some((c) => c.cover_url === undefined || c.cover_x === undefined)) ||
@@ -856,6 +858,13 @@ export default function LojaAdminPage() {
                   </button>
                 )}
               </div>
+            </Card>
+
+            <Card
+              title="Cuidados com a sua peça"
+              hint="Cards de uso (micro-ondas, forno, lava-louças…) e dicas de autocuidado. Aparecem na página inicial, logo abaixo dos diferenciais, e resumidos dentro de cada produto."
+            >
+              <CareEditor settings={settings} update={update} />
             </Card>
 
             <Card title="Aparência">
@@ -1443,6 +1452,18 @@ export default function LojaAdminPage() {
                   ))}
                 </ol>
               )}
+            </Card>
+
+            <Card
+              title="Opções dos produtos: argila, cores de esmalte…"
+              hint="O cliente escolhe na janela do produto, com as amostras em foto ou cor (como “Escolha a argila” e “Escolha o esmalte”). A escolha vai no pedido do WhatsApp. Marque em quais produtos cada grupo aparece e desmarque “Em estoque” quando uma cor acabar."
+            >
+              <OptionsEditor
+                settings={settings}
+                products={products}
+                update={update}
+                upload={async (file) => (await uploadImage(`${orgPath}/uploads/image`, accessToken, file)).url}
+              />
             </Card>
 
             <Card title="Produtos na loja" hint="Escolha o que aparece, o que fica em destaque e a ordem dos produtos na loja (↑ ↓ ⤒). O preço mostrado ao cliente é o preço de venda; custos nunca são exibidos.">

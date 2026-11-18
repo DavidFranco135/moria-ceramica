@@ -456,3 +456,52 @@ def test_store_installments_and_mobile_slide(client: TestClient):
     assert (s["installments_max"], s["installments_min"]) == (3, 30)
     assert s["slides"][0]["mobile_url"] == "https://x/a-cel.jpg"
     assert client.put(url, json={"installments_max": 99}, headers=headers).status_code == 422
+
+
+def test_store_care_section_defaults_and_product_options(client: TestClient):
+    org_id, slug, headers = _setup(client)
+    cup = _product(client, org_id, headers, name="Xícara", manual_price=50)
+    plate = _product(client, org_id, headers, name="Prato", manual_price=80)
+
+    # Cuidados com a peça já vêm preenchidos (micro-ondas, forno, lava-louças, ouro).
+    public = client.get(f"/api/v1/public/stores/{slug}").json()
+    assert public["settings"]["care_enabled"] is True
+    assert [c["icon"] for c in public["settings"]["care_items"]][:3] == ["microondas", "forno", "lavaloucas"]
+    assert len(public["settings"]["care_tips"]) == 3
+    assert all(p["options"] == [] for p in public["products"])
+
+    settings = client.get(f"/api/v1/organizations/{org_id}/store", headers=headers).json()["settings"]
+    settings["option_groups"] = [
+        {
+            "id": "esmalte",
+            "name": "Escolha o esmalte",
+            "hint": "defina sua cor",
+            "info": "Cada esmalte reage de um jeito no forno.",
+            "options": [
+                {"id": "branco", "name": "Branco", "image_url": "https://img/b.jpg"},
+                {"id": "verde", "name": "Verde oliva", "color": "#6b7b4b"},
+                {"id": "azul", "name": "Azul", "color": "#1d3f6e", "available": False},
+            ],
+        },
+        {"id": "argila", "name": "Argila", "options": [{"id": "x", "name": "Com pintas", "available": False}]},
+    ]
+    settings["product_option_groups"] = {cup["id"]: ["argila", "esmalte", "sumiu", "esmalte"]}
+    settings["care_tips"] = []
+    response = client.put(f"/api/v1/organizations/{org_id}/store", json=settings, headers=headers)
+    assert response.status_code == 200, response.text
+    # Grupo inexistente e repetido são descartados.
+    assert response.json()["settings"]["product_option_groups"] == {cup["id"]: ["argila", "esmalte"]}
+
+    store_use_cases._public_cache.clear()
+    public = client.get(f"/api/v1/public/stores/{slug}").json()
+    by_name = {p["name"]: p for p in public["products"]}
+    groups = by_name["Xícara"]["options"]
+    # Argila ficou sem opção disponível: não aparece. Azul está sem estoque.
+    assert [g["id"] for g in groups] == ["esmalte"]
+    assert [o["id"] for o in groups[0]["options"]] == ["branco", "verde"]
+    assert groups[0]["hint"] == "defina sua cor"
+    assert by_name["Prato"]["options"] == []
+    assert public["settings"]["care_tips"] == []
+
+    bad = dict(settings, care_items=[{"icon": "foguete", "title": "x", "text": "y"}])
+    assert client.put(f"/api/v1/organizations/{org_id}/store", json=bad, headers=headers).status_code == 422

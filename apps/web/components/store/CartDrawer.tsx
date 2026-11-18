@@ -47,9 +47,10 @@ export function CartDrawer({
   customer: CustomerInfo;
   onCustomer: (next: CustomerInfo) => void;
   onClose: () => void;
-  onQty: (id: string, qty: number) => void;
-  onNote: (id: string, note: string) => void;
-  onRemove: (id: string) => void;
+  // key: linha do pedido (produto + opções escolhidas).
+  onQty: (key: string, qty: number) => void;
+  onNote: (key: string, note: string) => void;
+  onRemove: (key: string) => void;
   onClear: () => void;
   onBrowse: () => void;
   onSent: () => void;
@@ -128,9 +129,11 @@ export function CartDrawer({
         ) : (
           <>
             <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
-              {lines.map(({ product, qty, note }, i) => (
+              {lines.map(({ product, qty, note, key: lk, choices }, i) => {
+                const key = lk ?? product.id;
+                return (
                 <div
-                  key={product.id}
+                  key={key}
                   style={{ animationDelay: `${i * 40}ms` }}
                   className="animate-fade-up rounded-2xl border border-[var(--line)] bg-[var(--bg)] p-3"
                 >
@@ -157,9 +160,25 @@ export function CartDrawer({
                           {product.size && (
                             <p className="break-words text-xs text-[var(--muted)]">{product.size}</p>
                           )}
+                          {choices?.map((c) => (
+                            <p key={c.group} className="mt-0.5 flex items-center gap-1.5 text-xs text-[var(--muted)]">
+                              {(c.color || c.image_url) && (
+                                <span
+                                  className="inline-block h-3.5 w-3.5 shrink-0 overflow-hidden rounded-full border border-black/10 bg-cover bg-center"
+                                  style={{
+                                    background: c.color || undefined,
+                                    backgroundImage: !c.color && c.image_url ? `url(${imgSrc(c.image_url, IMG_WIDTH.thumb)})` : undefined,
+                                  }}
+                                />
+                              )}
+                              <span className="break-words">
+                                {((g) => g.charAt(0).toUpperCase() + g.slice(1))(c.group.replace(/^escolha\s+(a|o|as|os)?\s*/i, ""))}: <strong className="font-semibold text-[var(--ink)]">{c.option}</strong>
+                              </span>
+                            </p>
+                          ))}
                         </div>
                         <button
-                          onClick={() => onRemove(product.id)}
+                          onClick={() => onRemove(key)}
                           aria-label="Remover"
                           className="shrink-0 rounded-lg p-1.5 text-[var(--muted)] transition hover:bg-red-500/10 hover:text-red-500"
                         >
@@ -169,7 +188,7 @@ export function CartDrawer({
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1 rounded-full border border-[var(--line)] bg-[var(--surface)] p-0.5">
                           <button
-                            onClick={() => onQty(product.id, qty - 1)}
+                            onClick={() => onQty(key, qty - 1)}
                             aria-label="Diminuir"
                             className="flex h-7 w-7 items-center justify-center rounded-full transition hover:bg-[var(--accent-soft)]"
                           >
@@ -177,7 +196,7 @@ export function CartDrawer({
                           </button>
                           <span className="w-6 text-center text-sm font-semibold">{qty}</span>
                           <button
-                            onClick={() => onQty(product.id, qty + 1)}
+                            onClick={() => onQty(key, qty + 1)}
                             aria-label="Aumentar"
                             className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--accent)] text-[var(--accent-ink)]"
                           >
@@ -203,13 +222,14 @@ export function CartDrawer({
                   </div>
                   <input
                     value={note}
-                    onChange={(e) => onNote(product.id, e.target.value)}
+                    onChange={(e) => onNote(key, e.target.value)}
                     maxLength={300}
                     placeholder="Observação deste item (cor, personalização…)"
                     className="mt-3 w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-xs text-[var(--ink)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--accent)]"
                   />
                 </div>
-              ))}
+                );
+              })}
 
               <div className="space-y-3 pt-2">
                 <input

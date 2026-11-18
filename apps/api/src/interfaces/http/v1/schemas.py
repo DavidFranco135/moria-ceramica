@@ -741,6 +741,77 @@ class StoreHighlight(BaseModel):
     text: str = Field(default="", max_length=240)
 
 
+CARE_ICONS = (
+    "microondas|forno|lavaloucas|freezer|ouro|brilho|esponja|temperatura|coracao|mao|sol|gota|alerta|caixa|folha"
+)
+
+
+class StoreCareItem(BaseModel):
+    """Card de "Cuidados com a sua peça" (ícone, título curto e texto)."""
+
+    icon: str = Field(default="brilho", pattern=f"^({CARE_ICONS})$")
+    title: str = Field(default="", max_length=60)
+    text: str = Field(default="", max_length=240)
+
+
+def _default_care_items() -> list[StoreCareItem]:
+    return [
+        StoreCareItem(icon="microondas", title="Pode ir ao micro-ondas", text="Aqueça seus alimentos com segurança."),
+        StoreCareItem(icon="forno", title="Pode ir ao forno", text="Pode ser usada no forno convencional."),
+        StoreCareItem(icon="lavaloucas", title="Pode ir à lava-louças", text="Resiste ao uso diário na lava-louças."),
+        StoreCareItem(
+            icon="ouro",
+            title="Peças com ouro não vão ao micro-ondas",
+            text="As demais peças podem ser usadas normalmente.",
+        ),
+    ]
+
+
+def _default_care_tips() -> list[StoreCareItem]:
+    return [
+        StoreCareItem(
+            icon="esponja",
+            title="Limpeza",
+            text="Utilize esponja macia e sabão neutro para a limpeza. Evite o uso de produtos abrasivos.",
+        ),
+        StoreCareItem(
+            icon="temperatura",
+            title="Temperatura",
+            text="Evite mudanças bruscas de temperatura para preservar a durabilidade da peça.",
+        ),
+        StoreCareItem(
+            icon="coracao",
+            title="Peça artesanal",
+            text="Por ser uma peça artesanal, pequenas variações de forma, cor e textura são naturais "
+            "e tornam cada peça única e especial.",
+        ),
+    ]
+
+
+class StoreOption(BaseModel):
+    """Uma opção que o cliente escolhe no produto (ex.: uma cor de esmalte)."""
+
+    id: str = Field(min_length=1, max_length=40, pattern=r"^[A-Za-z0-9_-]+$")
+    name: str = Field(default="", max_length=60)
+    # Foto da amostra (ex.: xícara naquela cor) e/ou cor sólida (#rrggbb).
+    image_url: str = Field(default="", max_length=2000)
+    color: str = Field(default="", pattern=r"^(#[0-9a-fA-F]{6})?$")
+    # False = sem estoque agora: some da vitrine sem perder o cadastro.
+    available: bool = True
+
+
+class StoreOptionGroup(BaseModel):
+    """Grupo de opções (ex.: "Escolha o esmalte"), ligado a vários produtos."""
+
+    id: str = Field(min_length=1, max_length=40, pattern=r"^[A-Za-z0-9_-]+$")
+    name: str = Field(default="", max_length=40)
+    hint: str = Field(default="", max_length=80)
+    # Texto do "Entenda as cores" (explicação mostrada ao cliente).
+    info: str = Field(default="", max_length=800)
+    required: bool = True
+    options: list[StoreOption] = Field(default_factory=list, max_length=40)
+
+
 class StoreCategory(BaseModel):
     """Categoria da vitrine: criada e renomeada pelo lojista, guarda os ids
 
@@ -864,6 +935,27 @@ class StoreSettings(BaseModel):
     # mostra), com parcela mínima de R$ X.
     installments_max: int = Field(default=0, ge=0, le=24)
     installments_min: float = Field(default=0, ge=0, le=100_000)
+    # Seção "Cuidados com a sua peça": cards de uso e dicas de autocuidado.
+    care_enabled: bool = True
+    care_title: str = Field(default="Cuidados com a sua peça", max_length=80)
+    care_items: list[StoreCareItem] = Field(default_factory=_default_care_items, max_length=6)
+    care_tips: list[StoreCareItem] = Field(default_factory=_default_care_tips, max_length=6)
+    # Opções que o cliente escolhe no produto (argila, cor do esmalte...).
+    option_groups: list[StoreOptionGroup] = Field(default_factory=list, max_length=8)
+    # Quais grupos cada produto usa: {id do produto: [ids dos grupos]}.
+    product_option_groups: dict[str, list[str]] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def _clean_product_options(self) -> "StoreSettings":
+        """Tira dos produtos os grupos que não existem mais (ou repetidos)."""
+        group_ids = {g.id for g in self.option_groups}
+        cleaned: dict[str, list[str]] = {}
+        for product_id, ids in self.product_option_groups.items():
+            keep = [gid for gid in dict.fromkeys(ids) if gid in group_ids]
+            if keep:
+                cleaned[product_id] = keep
+        self.product_option_groups = cleaned
+        return self
 
     @field_validator("product_discounts")
     @classmethod
@@ -902,6 +994,23 @@ class StoreAdminResponse(BaseModel):
     settings: StoreSettings
 
 
+class PublicOption(BaseModel):
+    id: str
+    name: str
+    image_url: str = ""
+    color: str = ""
+
+
+class PublicOptionGroup(BaseModel):
+    id: str
+    name: str
+    hint: str = ""
+    info: str = ""
+    required: bool = True
+    # Só as opções disponíveis (com estoque) agora.
+    options: list[PublicOption] = Field(default_factory=list)
+
+
 class PublicProduct(BaseModel):
     id: UUID
     name: str
@@ -923,6 +1032,8 @@ class PublicProduct(BaseModel):
     discount_percent: float = 0
     # Fora das promoções gerais e do desconto por valor do pedido.
     promo_excluded: bool = False
+    # Opções para o cliente escolher (argila, esmalte...), na ordem do lojista.
+    options: list[PublicOptionGroup] = Field(default_factory=list)
 
 
 class StorePing(BaseModel):
@@ -1018,6 +1129,10 @@ class PublicStoreSettings(BaseModel):
     background_header: bool = False
     installments_max: int = 0
     installments_min: float = 0
+    care_enabled: bool = False
+    care_title: str = ""
+    care_items: list[StoreCareItem] = Field(default_factory=list)
+    care_tips: list[StoreCareItem] = Field(default_factory=list)
 
 
 class PublicStoreResponse(BaseModel):

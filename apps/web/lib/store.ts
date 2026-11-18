@@ -10,6 +10,21 @@ export type StoreSlide = {
   mobile_url?: string;
 };
 export type StoreHighlight = { title: string; text: string };
+// Card de "Cuidados com a sua peça" (ícone, título e texto).
+export type StoreCareItem = { icon: string; title: string; text: string };
+// Opções que o cliente escolhe no produto (ex.: cor do esmalte, tipo de argila).
+export type StoreOption = { id: string; name: string; image_url: string; color: string; available: boolean };
+export type StoreOptionGroup = {
+  id: string;
+  name: string;
+  hint: string;
+  info: string;
+  required: boolean;
+  options: StoreOption[];
+};
+export type PublicOptionGroup = Omit<StoreOptionGroup, "options"> & {
+  options: Omit<StoreOption, "available">[];
+};
 // cover_url: foto principal da categoria na vitrine ("" = automática).
 // cover_x / cover_y: enquadramento da foto principal (0-100, 50 = centro).
 export type StoreCategory = {
@@ -93,6 +108,14 @@ export type StoreSettings = {
   // parcela mínima de R$ X (0 = sem mínimo).
   installments_max?: number;
   installments_min?: number;
+  // Seção "Cuidados com a sua peça".
+  care_enabled?: boolean;
+  care_title?: string;
+  care_items?: StoreCareItem[];
+  care_tips?: StoreCareItem[];
+  // Opções dos produtos e quais grupos cada produto usa.
+  option_groups?: StoreOptionGroup[];
+  product_option_groups?: Record<string, string[]>;
 };
 
 export type StoreAdminResponse = { slug: string; name: string; settings: StoreSettings };
@@ -116,6 +139,8 @@ export type PublicProduct = {
   discount_percent?: number;
   // Fora das promoções (geral e por valor do pedido).
   promo_excluded?: boolean;
+  // Opções para escolher (só as disponíveis), na ordem do lojista.
+  options?: PublicOptionGroup[];
 };
 
 export type PublicStore = {
@@ -132,6 +157,8 @@ export type PublicStore = {
     | "product_discounts"
     | "promo_excluded_ids"
     | "promo_start"
+    | "option_groups"
+    | "product_option_groups"
   > & {
     categories: PublicCategory[];
     // Destaques visíveis, já na ordem escolhida (servidores antigos não mandam).
@@ -140,7 +167,34 @@ export type PublicStore = {
   products: PublicProduct[];
 };
 
-export type CartLine = { id: string; qty: number; note: string };
+// opts: opções escolhidas {id do grupo: id da opção}. O mesmo produto pode
+// estar em mais de uma linha, uma para cada combinação (ex.: duas cores).
+export type CartLine = { id: string; qty: number; note: string; opts?: Record<string, string> };
+
+export function lineKey(l: { id: string; opts?: Record<string, string> }): string {
+  const opts = Object.entries(l.opts ?? {})
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([g, o]) => `${g}=${o}`)
+    .join("&");
+  return opts ? `${l.id}|${opts}` : l.id;
+}
+
+// Escolhas legíveis de uma linha ("Esmalte: Verde oliva"), na ordem dos grupos.
+export function lineChoices(product: PublicProduct, opts?: Record<string, string>) {
+  return (product.options ?? [])
+    .map((g) => {
+      const o = g.options.find((x) => x.id === opts?.[g.id]);
+      return o ? { group: g.name, option: o.name || "—", image_url: o.image_url, color: o.color } : null;
+    })
+    .filter((c): c is NonNullable<typeof c> => c !== null);
+}
+
+// Falta escolher alguma opção obrigatória (ou a escolhida saiu do estoque)?
+export function missingChoice(product: PublicProduct, opts?: Record<string, string>) {
+  return (product.options ?? []).find(
+    (g) => g.required && !g.options.some((o) => o.id === opts?.[g.id])
+  );
+}
 
 // Loja mostrada na página inicial do site. É o endereço gerado no cadastro a
 // partir do nome "Moriá Cerâmica"; se for outro, defina NEXT_PUBLIC_STORE_SLUG.
@@ -383,7 +437,13 @@ export function instagramEmbedUrl(link: string): string | null {
   return `https://www.instagram.com/${kind}/${m[2]}/embed`;
 }
 
-export type OrderLine = { product: PublicProduct; qty: number; note: string };
+export type OrderLine = {
+  product: PublicProduct;
+  qty: number;
+  note: string;
+  key?: string;
+  choices?: { group: string; option: string; image_url?: string; color?: string }[];
+};
 
 export const PRICE_ON_REQUEST_LABEL = "Preço a consultar";
 
@@ -517,6 +577,7 @@ export function buildOrderMessage(
     .map((l, i) => {
       const size = l.product.size ? ` (${l.product.size})` : "";
       const note = l.note ? `\n   Obs: ${l.note}` : "";
+      const choices = (l.choices ?? []).map((c) => `\n   ${c.group}: ${c.option}`).join("");
       let price: string;
       if (l.product.price_on_request) price = `${l.qty} × preço a consultar`;
       else if (itemDiscounts(l) && hasDiscount(l.product))
@@ -524,7 +585,7 @@ export function buildOrderMessage(
           unitPrice(l.product) * l.qty
         )}`;
       else price = `${l.qty} × ${brl(l.product.price)} = ${brl(l.product.price * l.qty)}`;
-      return `*${i + 1}.* ${l.product.name}${size}\n   ${price}${note}`;
+      return `*${i + 1}.* ${l.product.name}${size}${choices}\n   ${price}${note}`;
     })
     .join("\n\n");
   const summary: string[] = [];

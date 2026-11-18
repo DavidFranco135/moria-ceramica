@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { CartLine, PublicProduct } from "@/lib/store";
-import { priceLabel, unitPrice, whatsappLink } from "@/lib/store";
+import type { CartLine, PublicProduct, StoreCareItem } from "@/lib/store";
+import { lineKey, missingChoice, priceLabel, unitPrice, whatsappLink } from "@/lib/store";
+import { CareMini } from "./care";
+import { OptionPicker } from "./options";
 import { useOverlayHistory } from "@/lib/use-overlay-history";
 import {
   IconChevronLeft,
@@ -18,7 +20,8 @@ import { IconCube, InstallmentsLine, Model3D, PriceTag, ProductionEta, RelatedPr
 
 export function ProductModal({
   product,
-  line,
+  lines,
+  care,
   storeName,
   whatsapp,
   onClose,
@@ -30,11 +33,13 @@ export function ProductModal({
   promoActive = false,
 }: {
   product: PublicProduct;
-  line: CartLine | undefined;
+  // Linhas do pedido deste produto (uma por combinação de opções).
+  lines: CartLine[];
+  care?: { items: StoreCareItem[]; tips: StoreCareItem[] };
   storeName: string;
   whatsapp: string;
   onClose: () => void;
-  onSave: (qty: number, note: string) => void;
+  onSave: (qty: number, note: string, opts?: Record<string, string>) => void;
   related?: PublicProduct[];
   onOpenProduct?: (id: string) => void;
   productionDays?: string;
@@ -43,8 +48,14 @@ export function ProductModal({
   promoActive?: boolean;
 }) {
   const [photo, setPhoto] = useState(0);
-  const [qty, setQty] = useState(line?.qty ?? 1);
-  const [note, setNote] = useState(line?.note ?? "");
+  const groups = product.options ?? [];
+  // Começa pela combinação que já está no pedido (se houver uma).
+  const first = lines[0];
+  const [opts, setOpts] = useState<Record<string, string>>(first?.opts ?? {});
+  const line = lines.find((l) => lineKey(l) === lineKey({ id: product.id, opts }));
+  const [qty, setQty] = useState(first?.qty ?? 1);
+  const [note, setNote] = useState(first?.note ?? "");
+  const [needChoice, setNeedChoice] = useState<string | null>(null);
   const photos = product.photo_urls;
   const maxQty = product.stock_quantity ?? 99;
   // Zoom na foto: segue o mouse no computador; no celular, um toque amplia
@@ -59,8 +70,10 @@ export function ProductModal({
   if (shownId !== product.id) {
     setShownId(product.id);
     setPhoto(0);
-    setQty(line?.qty ?? 1);
-    setNote(line?.note ?? "");
+    setOpts(first?.opts ?? {});
+    setQty(first?.qty ?? 1);
+    setNote(first?.note ?? "");
+    setNeedChoice(null);
     setZoom(null);
     setView("fotos");
   }
@@ -303,6 +316,25 @@ export function ProductModal({
 
           <ProductionEta text={productionDays} variant="inline" />
 
+          {product.available &&
+            groups.map((g, gi) => (
+              <OptionPicker
+                key={g.id}
+                step={groups.length > 1 ? gi + 1 : undefined}
+                group={g}
+                value={opts[g.id]}
+                error={needChoice === g.id}
+                onChange={(id) => {
+                  setOpts((o) => {
+                    const next = { ...o, [g.id]: id };
+                    if (!id) delete next[g.id];
+                    return next;
+                  });
+                  setNeedChoice(null);
+                }}
+              />
+            ))}
+
           {product.available && (
             <div className="space-y-3">
               <div className="flex items-center justify-between rounded-2xl border border-[var(--line)] bg-[var(--bg)] p-2">
@@ -330,7 +362,7 @@ export function ProductModal({
                 onChange={(e) => setNote(e.target.value)}
                 rows={2}
                 maxLength={300}
-                placeholder="Informações adicionais: cor, personalização, nome na peça…"
+                placeholder={groups.length ? "Informações adicionais: personalização, nome na peça…" : "Informações adicionais: cor, personalização, nome na peça…"}
                 className="w-full resize-none rounded-2xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm text-[var(--ink)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-ring)]"
               />
             </div>
@@ -339,7 +371,21 @@ export function ProductModal({
           <div className="mt-auto flex flex-col gap-2.5">
             {product.available && (
               <button
-                onClick={() => onSave(qty, note.trim())}
+                onClick={() => {
+                  const missing = missingChoice(product, opts);
+                  if (missing) {
+                    setNeedChoice(missing.id);
+                    document.getElementById(`opt-${missing.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+                    return;
+                  }
+                  // Só guarda escolhas de grupos que existem neste produto.
+                  const clean = Object.fromEntries(
+                    Object.entries(opts).filter(([gid, oid]) =>
+                      groups.some((g) => g.id === gid && g.options.some((o) => o.id === oid))
+                    )
+                  );
+                  onSave(qty, note.trim(), clean);
+                }}
                 className="fx-btn inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 text-sm font-semibold text-[var(--accent-ink)] shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0"
               >
                 {line ? "Atualizar no pedido" : "Adicionar ao pedido"}
@@ -357,6 +403,8 @@ export function ProductModal({
             </a>
             {shareUrl && <ShareProductButton url={shareUrl} title={product.name} />}
           </div>
+
+          {care && <CareMini items={care.items} tips={care.tips} />}
 
           {onOpenProduct && <RelatedProducts products={related} onOpen={onOpenProduct} />}
         </div>

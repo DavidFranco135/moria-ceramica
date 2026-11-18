@@ -14,6 +14,8 @@ from src.infrastructure.repositories import (
 )
 from src.interfaces.http.v1.schemas import (
     PublicCategory,
+    PublicOption,
+    PublicOptionGroup,
     PublicProduct,
     PublicStoreResponse,
     PublicStoreSettings,
@@ -132,6 +134,23 @@ def get_public_store(db: Session, *, slug: str) -> PublicStoreResponse:
             categories_of.setdefault(product_id, []).append(category.id)
     promo = _active_promo_percent(settings)
     excluded = set(settings.promo_excluded_ids)
+    # Grupos de opções já filtrados: só opções disponíveis; grupo vazio some.
+    public_groups: dict[str, PublicOptionGroup] = {}
+    for group in settings.option_groups:
+        options = [
+            PublicOption(id=o.id, name=o.name.strip(), image_url=o.image_url.strip(), color=o.color)
+            for o in group.options
+            if o.available and (o.name.strip() or o.image_url.strip() or o.color)
+        ]
+        if options and group.name.strip():
+            public_groups[group.id] = PublicOptionGroup(
+                id=group.id,
+                name=group.name.strip(),
+                hint=group.hint.strip(),
+                info=group.info.strip(),
+                required=group.required,
+                options=options,
+            )
     products: list[PublicProduct] = []
     for product in visible_products:
         if product.manual_price is not None:
@@ -167,6 +186,12 @@ def get_public_store(db: Session, *, slug: str) -> PublicStoreResponse:
                     settings.product_discounts.get(str(product.id), 0.0),
                 ),
                 promo_excluded=str(product.id) in excluded,
+                # Na ordem dos grupos em Minha Loja (ex.: 1 argila, 2 esmalte).
+                options=[
+                    group
+                    for gid, group in public_groups.items()
+                    if gid in settings.product_option_groups.get(str(product.id), [])
+                ],
             )
         )
 
@@ -225,6 +250,10 @@ def get_public_store(db: Session, *, slug: str) -> PublicStoreResponse:
             background_header=settings.background_header,
             installments_max=settings.installments_max,
             installments_min=settings.installments_min,
+            care_enabled=settings.care_enabled,
+            care_title=settings.care_title,
+            care_items=[c for c in settings.care_items if c.title.strip() or c.text.strip()],
+            care_tips=[c for c in settings.care_tips if c.title.strip() or c.text.strip()],
         ),
         products=products,
     )

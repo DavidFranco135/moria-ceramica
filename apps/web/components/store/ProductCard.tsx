@@ -4,6 +4,7 @@ import type { PublicProduct } from "@/lib/store";
 import { priceLabel, unitPrice } from "@/lib/store";
 import { IconMinus, IconPlus } from "./ui";
 import { IMG_WIDTH, imgSrc } from "@/lib/img";
+import { OptionDots } from "./options";
 import { DiscountRibbon, IconCube, InstallmentsLine, PriceTag } from "./extras";
 import { flyToCart } from "./fx";
 
@@ -118,6 +119,7 @@ export function ProductCard({
             {product.name}
           </h3>
           {product.size && <p className="break-words text-xs text-[var(--muted)]">{product.size}</p>}
+          <OptionDots product={product} />
         </div>
 
         <div className="mt-auto flex flex-col gap-2.5 min-[520px]:flex-row min-[520px]:items-center min-[520px]:justify-between">
