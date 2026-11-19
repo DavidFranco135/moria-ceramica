@@ -198,11 +198,31 @@ function robots(url) {
 
 // Domínio próprio: www → endereço principal; gestor.<domínio> abre o login.
 const MAIN_HOST = "moriaceramica.com.br";
+const OLD_HOST = "moria-ceramica.pages.dev";
+// Páginas da loja (o resto é do gestor).
+const PUBLIC_PATHS = /^\/($|loja(\.html|\/)?$|precificacao-publica(\.html|\/)?$)/;
+
+function isNavigation(request) {
+  const mode = request.headers.get("Sec-Fetch-Mode");
+  if (mode) return mode === "navigate";
+  return (request.headers.get("Accept") || "").includes("text/html");
+}
 
 export async function onRequest(context) {
   const { request, next } = context;
   if (request.method !== "GET") return next();
   const url = new URL(request.url);
+  // Endereço antigo do Cloudflare Pages: quem abre uma página vai para o
+  // domínio próprio (o gestor para gestor.<domínio>). Só navegação: arquivos e
+  // dados (/loja-data, /img…) continuam respondendo aqui. Prévias
+  // (<hash>.moria-ceramica.pages.dev) não são redirecionadas.
+  if (url.hostname === OLD_HOST && isNavigation(request)) {
+    const store = PUBLIC_PATHS.test(url.pathname);
+    url.protocol = "https:";
+    url.port = "";
+    url.hostname = store ? MAIN_HOST : `gestor.${MAIN_HOST}`;
+    return Response.redirect(url.toString(), 301);
+  }
   if (url.hostname === `www.${MAIN_HOST}`) {
     url.hostname = MAIN_HOST;
     return Response.redirect(url.toString(), 301);
