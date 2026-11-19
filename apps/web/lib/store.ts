@@ -630,11 +630,22 @@ export function promoNotices(settings: {
 
 // Pede à Cloudflare (functions/loja-data.js) para buscar de novo os dados da
 // loja pública logo após uma alteração no painel. Sem efeito em desenvolvimento.
+// Endereços públicos da loja (domínio próprio e o do Cloudflare Pages).
+const PUBLIC_ORIGINS = ["https://moriaceramica.com.br", "https://moria-ceramica.pages.dev"];
+
 export function refreshPublicStoreCache(slug: string | undefined): void {
   if (!slug || process.env.NODE_ENV !== "production") return;
   // Dá ~1 s para o servidor terminar de gravar antes de buscar.
+  // A loja abre em mais de um endereço e cada um tem a sua cópia em cache:
+  // atualiza todos, não só o do gestor.
+  const origins = new Set([window.location.origin, ...PUBLIC_ORIGINS]);
   setTimeout(() => {
-    fetch(`/loja-data?s=${encodeURIComponent(slug)}&refresh=1`).catch(() => {});
+    for (const origin of origins) {
+      const sameOrigin = origin === window.location.origin;
+      fetch(`${origin}/loja-data?s=${encodeURIComponent(slug)}&refresh=1`, sameOrigin ? {} : { mode: "no-cors" }).catch(
+        () => {}
+      );
+    }
   }, 1000);
 }
 
